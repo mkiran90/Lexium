@@ -1,6 +1,6 @@
 import struct
 import os
-from ..util.singleton import singleton
+from code.util.singleton import singleton
 import random
 '''
 Structure of Forward Index Data File
@@ -31,7 +31,7 @@ class ForwardIndex:
         if not os.path.isfile(self.DATA_FILE_PATH):
             self.create_data_file()
         if not os.path.isfile(self.OFFSET_FILE_PATH):
-            open(self.DATA_FILE_PATH, "x") # safe creation
+            open(self.OFFSET_FILE_PATH, "x") # safe creation
 
     @classmethod
     def create_data_file(cls):

@@ -1,8 +1,7 @@
 import os.path
 import struct
-import sys
 
-from ..util.singleton import singleton
+from code.util.singleton import singleton
 
 @singleton
 class DocURLDict:
@@ -43,5 +42,3 @@ class DocURLDict:
         with open(self.OFFSET_FILE_PATH, "ab") as offset_file:
             size = offset_file.tell()/4
         return size
-
-print(sys.path)

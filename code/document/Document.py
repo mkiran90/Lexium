@@ -2,7 +2,7 @@ import struct
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..forward_index.ForwardIndex import ForwardIndex
+    from code.forward_index.ForwardIndex import ForwardIndex
 
 
 class DocumentBodyWord:

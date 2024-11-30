@@ -1,12 +1,12 @@
 import os
 import string
 import struct
-from util.singleton import singleton
+from code.util.singleton import singleton
 
 @singleton
 class Lexicon:
 
-    LEXICON_ROOT = "../../res/lexicon"
+    LEXICON_ROOT = "../../res/lexicon/"
     SIZE_FILE = LEXICON_ROOT + "size.bin"
     def __init__(self):
 
@@ -63,5 +63,3 @@ class Lexicon:
             with open(file_path, 'wb') as file:
                 file.write(struct.pack('I', wordID))
         return wordID
-
-
