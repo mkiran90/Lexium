@@ -2,3 +2,5 @@
 discarded_words.txt
 *.csv
 dictionary/*
+/res
+test.py
