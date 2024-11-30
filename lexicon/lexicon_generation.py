@@ -2,24 +2,23 @@
 # LEXICON_DATA_PATH = "/lexicon_data.bin"
 
 import os
-import random
 import string
 import struct
 
-# Function to generate a random word of given length
-def generate_random_word(length=5):
-    return ''.join(random.choices(string.ascii_lowercase, k=length))
 
 DICTIONARY_ROOT = "dictionary/"
 
-def insert(key:string, val:int):
+def insert(key:string):
+
+    word_id = get_word_id()
 
     path = DICTIONARY_ROOT + "/".join(key)
     os.makedirs(path, exist_ok=True)
-    file_name = f'{path}/data.bin'
+    file_name = path + "/data.bin"
 
     with open(file_name, 'wb') as file:
-        file.write(struct.pack('i', val))
+        file.write(struct.pack('i', word_id))
+
 
 def retrieve(key:string):
 
@@ -33,8 +32,27 @@ def retrieve(key:string):
     except FileNotFoundError:
         pass
 
-for i in range(1, 1001):
-    insert(generate_random_word(random.randint(1, 11)), i)
+
+def get_word_id():
+    word_id = 0
+    counter_path = DICTIONARY_ROOT + "counter.bin"
+
+
+    if not os.path.exists(counter_path):
+        os.makedirs(os.path.dirname(counter_path), exist_ok=True)
+
+        with open(counter_path, 'wb') as f:
+            f.write(struct.pack('I', 0))
+    else:
+        with open(counter_path, 'rb') as f:
+            word_id = struct.unpack('I', f.read(4))[0]
+
+        word_id += 1
+
+        with open(counter_path, 'wb') as f:
+            f.write(struct.pack('I', word_id))
+
+    return word_id
 
 
 
