@@ -2,7 +2,6 @@ import spacy
 import re
 import os
 import pandas as pd
-from lexicon.lexicon_generation import insert
 
 nlp = spacy.load("en_core_web_trf")
 
