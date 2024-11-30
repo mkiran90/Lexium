@@ -12,6 +12,7 @@ def insert(key:string):
 
     word_id = get_word_id()
 
+    # path = DICTIONARY_ROOT + "/".join(str(ord(char)) for char in key)
     path = DICTIONARY_ROOT + "/".join(key)
     os.makedirs(path, exist_ok=True)
     file_name = path + "/data.bin"
@@ -22,6 +23,7 @@ def insert(key:string):
 
 def retrieve(key:string):
 
+    # path = DICTIONARY_ROOT + "/".join(str(ord(char)) for char in key)
     path = DICTIONARY_ROOT + "/".join(key)
     os.makedirs(path, exist_ok=True)
     file_name = f'{path}/data.bin'

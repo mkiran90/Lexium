@@ -24,7 +24,7 @@ class Lexicon:
 
 
     def get_directory(self, word:string):
-        return self.LEXICON_ROOT + "/".join(word) + "/"
+        return self.LEXICON_ROOT + "/".join(str(ord(char)) for char in word) + "/"
 
     def store_word(self, word: string):
 
