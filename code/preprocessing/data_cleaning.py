@@ -1,6 +1,6 @@
 import spacy
 
-nlp = spacy.load("en_core_web_trf")
+nlp = spacy.load("en_core_web_md")
 
 # string of cleaned tags, separated by spaces.
 def clean_tags(text):
@@ -14,7 +14,7 @@ def clean_tags(text):
 
 # string of cleaned title words, separated by spaces
 def clean_title(text):
-    doc = nlp(text)
+    doc = nlp(str(text))
 
     clean_tokens = [token.lemma_.lower() for token in doc if not token.is_punct and not token.is_stop]
 
@@ -63,14 +63,11 @@ def is_valid(token):
 
 # string of cleaned body words, separated by spaces
 def clean_body(text):
-    doc = nlp(text)
+    doc = nlp(str(text))
 
     clean_tokens = [token.lemma_.lower() for token in doc if is_valid(token)]
 
     return " ".join(clean_tokens)
-
-
-
 
 
 
