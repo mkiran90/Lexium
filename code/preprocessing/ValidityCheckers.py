@@ -12,7 +12,7 @@ def is_valid_text(token):
                 and not token.is_space
                 and not token.like_url
                 and not token.like_email
-                and is_invalid_pattern(token.text)
+                and not is_invalid_pattern(token.text)
             )
     )
 
