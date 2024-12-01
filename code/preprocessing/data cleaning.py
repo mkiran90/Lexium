@@ -1,107 +1,76 @@
 import spacy
-import re
-import os
-import pandas as pd
 
 nlp = spacy.load("en_core_web_trf")
 
-#TODO fix this shit cuz its not dynamic.
-os.chdir("C:/Users/sabih/OneDrive/Documents/GitHub/Search-Engine/")
-
-# chunk_size = 10000
-
+# string of cleaned tags, separated by spaces.
 def clean_tags(text):
 
-    doc = nlp(text)
+    # the string stored in the csv is the string representation of a list of tags
+    tag_list:list[str] = eval(text)
 
-    clean_tokens = [
-        re.sub(r'[<>:"/\\|?*]', '', token.lemma_) for token in doc
-        if not token.is_space
-        and not token.is_quote
-        and not token.is_punct
-        and not token.is_digit
-    ]
+    clean_tags = [tag.lower() for tag in tag_list]
 
-    return " ".join(clean_tokens)
+    return " ".join(clean_tags)
 
+# string of cleaned title words, separated by spaces
 def clean_title(text):
     doc = nlp(text)
 
-    clean_tokens = [
-        re.sub(r'[<>:"/\\|?*]', '', token.lemma_) for token in doc
-        if not token.is_stop
-        and not token.is_punct
-        and not token.is_quote
-        and not token.is_space
-        and not token.is_digit
-    ]
+    clean_tokens = [token.lemma_.lower() for token in doc if not token.is_punct and not token.is_stop]
 
     return " ".join(clean_tokens)
 
-def clean_text(text):
+#overall validity (to let through or not)
+def is_valid(token):
+
+    # CERTAIN VALID (the second part captures meaningul named entities that have appeared multiple times over intent, C++ google.com etc)
+    if (token.is_alpha and not token.is_stop) or (not token.is_oov and not token.is_stop and any([c.isalpha() for c in token.text])):
+        return True
+
+    # CERTAIN INVALID
+    if token.is_stop or all(not c.isalpha() for c in token.text) or token.like_url:
+        return False
+
+    # GREY AREA
+
+    # non-alphabetical words with this much length? statistically certain to be code blocks.
+    if len(token.text) > 15:
+        return False
+
+    # this matches for purely alphanumeric strings OR strings that have the same special character (- or .) repeated indefinitely
+    alpha, digit, special = 0, 0, 0
+    last_special = '\n'
+    same_special = True
+    for c in token.text:
+        if c.isalpha():
+            alpha += 1
+        elif '0' <= c <= '9':
+            digit += 1
+        else:
+            special += 1
+            if last_special == '\n':
+                last_special = c
+            else:
+                if c != last_special:
+                    same_special = False
+
+    # purely alpha numeric string with size < 15 OR one special character OR U.S.A U-S-A etc.
+    if special <= 1 or (same_special and last_special in ['-', '.']):
+        return True
+
+    # default
+    return False
+
+# string of cleaned body words, separated by spaces
+def clean_body(text):
     doc = nlp(text)
 
-    # discarded_words = []
-
-    superscript_pattern = r'^[\u00B9\u00B2\u00B3\u2070-\u2079\u2080-\u2089]'
-    url_pattern = r'http[s]?://\S+|www\.\S+'
-
-    clean_tokens = [
-        re.sub(r'[<>:\"@/\'|?*]', '', token.lemma_)
-        for token in doc
-        if not token.is_stop
-        and not token.is_punct
-        and not token.text[0] in "\"'"
-        and not token.is_space
-        and not token.text[0].isdigit()
-        and not re.match(url_pattern, token.text)
-        and not re.match(r'^\d', token.text)
-        and not re.match(superscript_pattern, token.text)
-        and (
-               re.search(r'[a-zA-Z]+[0-9]*', token.text)
-               or re.search(r'[a-zA-Z]+-*[a-zA-Z0-9]+', token.text)
-       )
-        or discarded_words.append(token.text)
-    ]
-
-    # with open(os.getcwd() + '\\discarded_words.txt', 'w', encoding='utf-8') as f:
-    #     for word in discarded_words:
-    #         f.write(f"{word}\n")
-    #
-    # with open(os.getcwd() + '\\recorded_words.txt', 'a', encoding='utf-8') as f:
-    #     for word in clean_tokens:
-    #         f.write(f"{word}\n")
+    clean_tokens = [token.lemma_.lower() for token in doc if is_valid(token)]
 
     return " ".join(clean_tokens)
 
-# function to clean each row and insert tokens in each row to lexicon
-def process_row(row):
-    row["text"] = clean_text(row["text"])
-    row["title"] = clean_title(row["title"])
-    row["tags"] = clean_tags(row["tags"])
-
-    # for token in row["text"].split():
-    #     insert(token)
-    #
-    # for token in row["title"].split():
-    #     insert(token)
-    #
-    # for token in row["tags"].split():
-    #     insert(token)
-
-    return row
 
 
-# this function will load the dataset, clean it, add the tokens to lexicon, and generate
-# a new csv file with the cleaned data
-def process_and_save(file_path, output_file):
-
-    df = pd.read_csv(file_path).head(2)
-
-    df = df.apply(process_row, axis=1)
-
-    df.to_csv(output_file, index=False)
 
 
-# function call which creates the new csv
-process_and_save(os.getcwd() + "\\medium_articles.csv", os.getcwd() + "\\updated_medium_articles.csv")
+
