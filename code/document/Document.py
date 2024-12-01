@@ -1,8 +1,4 @@
 import struct
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from code.forward_index.ForwardIndex import ForwardIndex
 
 
 class DocumentBodyWord:
@@ -14,8 +10,7 @@ class DocumentBodyWord:
         return len(self.positions)
 
 class Document:
-      def __init__(self, docID, title_words, tags, body_words):
-          self.docID:int = docID
+      def __init__(self, title_words:list[int], tags:list[int], body_words:list[DocumentBodyWord]):
           self.title_words:list[int] = title_words
           self.tags:list[int] = tags
           self.body_words:list[DocumentBodyWord] = body_words # list of DocumentBodyWord
@@ -23,7 +18,7 @@ class Document:
       def word_count(self):
           return len(self.body_words)
 
-      def store(self, index:ForwardIndex):
+      def store(self, index):
 
           #write data to data file
           bytes = self.encode()
@@ -45,7 +40,7 @@ class Document:
                 if size (given by tell() in append mode) is 4, it means one document is stored already i.e docID 0
                 so next docID will be 4/4 = 1
                 '''
-                docID = offset_file.tell()/4
+                docID = int(offset_file.tell()/4)
                 offset_file.write(struct.pack("I", offset)) # offset will be stored as uint32
                 return docID
 
