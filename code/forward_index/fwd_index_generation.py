@@ -1,5 +1,4 @@
 import csv
-import time
 
 from code.lexicon_gen.Lexicon import Lexicon
 from ForwardIndex import ForwardIndex
@@ -9,8 +8,7 @@ index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
 
-parts_stored = []
-
+LAST_PART = 152 #NEXT PART 153
 def get_position_map(body_words: list[int]):
     position_map = {}
     for i in range(len(body_words)):
@@ -57,10 +55,8 @@ def store_rows_from_csv(csv_path):
 
 if __name__ == "__main__":
 
-    for i in range(1, 194):
-        A = time.time()
-        print(f"Indexing part {i}")
-        store_rows_from_csv(f"../../res/dataset/clean_split_dataset/clean_part_{i}.csv")
-        print(f"Indexed part {i} in {time.time() - A} seconds")
-        print("Waiting 2 seconds before moving onto next.")
-        time.sleep(2)
+   print(lexicon.get_or_assign("NEIT"))
+   print(lexicon.get_or_assign("cat"))
+
+lexicon.save_lexicon()
+

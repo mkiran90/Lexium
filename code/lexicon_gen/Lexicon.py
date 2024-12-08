@@ -1,65 +1,38 @@
 import os
 import string
-import struct
+import pickle
 from code.util.singleton import singleton
 
+
+#LEXICON NEEDS TO BE CLOSED/SAVED EXPLICITY WHENEVER MODIFIED
 @singleton
 class Lexicon:
 
-    LEXICON_ROOT = "../../res/lexicon/"
-    SIZE_FILE = LEXICON_ROOT + "size.bin"
+    LEXICON_PATH = "../../res/lexicon/lexicon.pkl"
+    lexicon = {}
     def __init__(self):
+        #sync in-memory lexicon up with in-storage lexicon
+        if os.path.isfile(self.LEXICON_PATH):
+            with open(self.LEXICON_PATH, "rb") as f:
+                self.lexicon = pickle.load(f)
 
-        # ensure lexicon directory exists.
-        os.makedirs(self.LEXICON_ROOT, exist_ok=True)
-
-        # ensure size file exists
-        if not os.path.isfile(self.SIZE_FILE):
-            with open(self.SIZE_FILE, "wb") as size_file:
-                size_file.write(b'\x00\x00\x00\x00') # write 0 as uint32
+    def save_lexicon(self):
+        # sync in-storage lexicon with in-memory lexicon
+        with open(self.LEXICON_PATH, "wb") as f:
+            pickle.dump(self.lexicon, f)
 
     def size(self):
-        with open(self.SIZE_FILE, "rb") as fwd_index:
-            return struct.unpack("I", fwd_index.read(4))[0]
-
-
-    def get_directory(self, word:string):
-        return self.LEXICON_ROOT + "/".join(str(ord(c)) for c in word) + "/"
+        return len(self.lexicon)
 
     def store_word(self, word: string):
+        self.lexicon[word] = self.size()
 
-        directory = self.get_directory(word)
-        os.makedirs(directory, exist_ok=True) # make directory to store data file in
-        file_path = directory + "data.bin"
-
-        wordID = self.size()
-
-        with open(file_path, 'wb') as file:
-            file.write(struct.pack('I', wordID))
-
-    # returns wordID or None (if it doesn't exist in lexicon)
-    def get_wordID(self, word: string):
-        directory_path = self.get_directory(word)
-        file_path = directory_path + "data.bin"
-
+    #returns wordID if word is in lexicon, else store word and return the newly assigned wordID
+    def get_or_assign(self, word: string):
         try:
-            with open(file_path, 'rb') as file:
-                return struct.unpack("I", file.read(4))[0]
-        except FileNotFoundError:
-            return None
+            return self.lexicon[word]
+        except KeyError:
 
-    # returns wordID if word is in lexicon, else store word and return the newly assigned wordID
-    def get_with_store(self, word):
-        directory = self.get_directory(word)
-        os.makedirs(directory, exist_ok=True)
-        file_path = directory + "data.bin"
-
-        # file exists
-        if os.path.isfile(file_path):
-            with open(file_path, 'rb') as file:
-                wordID = struct.unpack("I", file.read(4))[0]
-        else:
             wordID = self.size()
-            with open(file_path, 'wb') as file:
-                file.write(struct.pack('I', wordID))
-        return wordID
+            self.lexicon[word] = wordID
+            return wordID
