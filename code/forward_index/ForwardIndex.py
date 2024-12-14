@@ -89,4 +89,4 @@ class ForwardIndex:
 
                 body_words.append(DocumentBodyWord(wordID, positions))
 
-        return Document(docID, title_words, tags, body_words)
+        return Document(title_words, tags, body_words)

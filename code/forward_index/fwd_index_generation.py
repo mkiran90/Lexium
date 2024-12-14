@@ -1,4 +1,6 @@
 import csv
+import pickle
+import time
 
 from code.lexicon_gen.Lexicon import Lexicon
 from ForwardIndex import ForwardIndex
@@ -24,10 +26,10 @@ def get_position_map(body_words: list[int]):
 def row_to_document(row):
     from code.document.Document import Document, DocumentBodyWord
 
-    title_wordIDs = [lexicon.get_with_store(word) for word in row["title"].split()]
-    tag_wordIDs = [lexicon.get_with_store(word) for word in row["tags"].split()]
+    title_wordIDs = [lexicon.get_or_assign(word) for word in row["title"].split()]
+    tag_wordIDs = [lexicon.get_or_assign(word) for word in row["tags"].split()]
 
-    body_wordIDs = [lexicon.get_with_store(word) for word in row["text"].split()]
+    body_wordIDs = [lexicon.get_or_assign(word) for word in row["text"].split()]
 
 
     position_map = get_position_map(body_wordIDs)
@@ -53,10 +55,16 @@ def store_rows_from_csv(csv_path):
             assert docIDl==docIDd
 
 
+# takes about 5 minutes to run.
+def clean_all_csvs():
+    for i in range(1, 193 + 1):
+        A = time.time()
+        store_rows_from_csv(f"../../res/dataset/clean_split_dataset/clean_part_{i}.csv")
+        print(f"Indexed documents from part {i} in {time.time() - A} seconds")
+
 if __name__ == "__main__":
 
-   print(lexicon.get_or_assign("NEIT"))
-   print(lexicon.get_or_assign("cat"))
+   clean_all_csvs()
 
 lexicon.save_lexicon()
 
