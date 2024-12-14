@@ -104,7 +104,6 @@ class Document:
 
               body_words.append(DocumentBodyWord(wordID, positions))
 
-          print("NEW: " , (time.time() - A)*1000000)
           return Document(title_words, tags, body_words)
         
 
