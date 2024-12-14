@@ -62,7 +62,7 @@ def clean_all_csvs():
 
 if __name__ == "__main__":
 
-   print(lexicon.size())
-
+   #clean_all_csvs()
+   pass
 lexicon.save_lexicon()
 
