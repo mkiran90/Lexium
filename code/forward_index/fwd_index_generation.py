@@ -1,5 +1,4 @@
 import csv
-import pickle
 import time
 
 from code.lexicon_gen.Lexicon import Lexicon
@@ -10,7 +9,6 @@ index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
 
-LAST_PART = 152 #NEXT PART 153
 def get_position_map(body_words: list[int]):
     position_map = {}
     for i in range(len(body_words)):
@@ -64,7 +62,7 @@ def clean_all_csvs():
 
 if __name__ == "__main__":
 
-   clean_all_csvs()
+   print(lexicon.size())
 
 lexicon.save_lexicon()
 
