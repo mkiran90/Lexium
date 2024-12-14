@@ -1,5 +1,6 @@
 import struct
 import os
+
 from code.util.singleton import singleton
 import random
 '''
@@ -8,7 +9,7 @@ first 4 bytes are num_documents, unsigned integer32.
 afterwards begins a list of encoded Documents
 
 For each Document:
-the format is: |num_title_words|title_words|num_tags|tags|num_body_words|DocumentBodyWords|
+the format is: |num_bytes|num_title_words|title_words|num_tags|tags|num_body_words|DocumentBodyWords|
 num_title_words -> 1b uint8
 title_words -> num_title_words * 4 b (4b wordIDs uint32)
 num_tags -> 1b uint8
@@ -20,7 +21,6 @@ wordID -> 4b uint32
 num_positions -> 2b uint16
 positions -> num_positions * 4 b (4b wordIDs uint32)
 '''
-
 
 @singleton
 class ForwardIndex:
@@ -50,43 +50,24 @@ class ForwardIndex:
                                      [DocumentBodyWord(1, [1] * random.randint(1, 10))] * random.randint(100, 300))
             dummyDocument.store()
 
+
     # get pointer (offset for fwd index data file) to first byte of data for this docID
     def get_offset(self, docID: int):
         with open(self.OFFSET_FILE_PATH, "rb") as offset_file:
             offset_file.seek(4 * docID)
             return struct.unpack("I", offset_file.read(4))[0]
 
-
     def get_document(self, docID: int):
-        from code.document.Document import Document, DocumentBodyWord
+        from code.document.Document import Document
 
         offset: int = self.get_offset(docID)
 
         with open(self.DATA_FILE_PATH, "rb") as fwd_index:
             fwd_index.seek(offset)
 
-            # Read and decode the number of title words
-            num_title_words = struct.unpack("B", fwd_index.read(1))[0]  # read 1 byte, decode as uint8
+            # first 4 bytes give number of bytes that encode entire document
+            num_bytes = struct.unpack("I", fwd_index.read(4))[0]
 
-            # Read all title word data (4 bytes for each word, decode as uint32)
-            title_words_data = fwd_index.read(num_title_words * 4)
-            title_words = list(struct.unpack(f"{num_title_words}I", title_words_data))
+            docbytes = fwd_index.read(num_bytes)
 
-            # Read and decode the number of tags
-            num_tags = struct.unpack("B", fwd_index.read(1))[0]  # read 1 byte, decode as uint8
-
-            # Read all tag data (4 bytes for each tag, decode as uint32)
-            tags_data = fwd_index.read(num_tags * 4)
-            tags = list(struct.unpack(f"{num_tags}I", tags_data))
-
-            # read DocumentBodyWords
-            body_words: list[DocumentBodyWord] = []
-            num_body_words = struct.unpack("I", fwd_index.read(4))[0]
-            for _ in range(num_body_words):
-                wordID = struct.unpack("I", fwd_index.read(4))[0]
-                num_positions = struct.unpack("H", fwd_index.read(2))[0]  # 2 byte uint16
-                positions = list(struct.unpack(f"{num_positions}I", fwd_index.read(4 * num_positions)))
-
-                body_words.append(DocumentBodyWord(wordID, positions))
-
-        return Document(title_words, tags, body_words)
+            return Document.decode(docbytes)

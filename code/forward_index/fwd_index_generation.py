@@ -10,7 +10,6 @@ index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
 
-LAST_PART = 152 #NEXT PART 153
 def get_position_map(body_words: list[int]):
     position_map = {}
     for i in range(len(body_words)):
@@ -64,7 +63,7 @@ def clean_all_csvs():
 
 if __name__ == "__main__":
 
-   clean_all_csvs()
-
+   #clean_all_csvs()
+   pass
 lexicon.save_lexicon()
 
