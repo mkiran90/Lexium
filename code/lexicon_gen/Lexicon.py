@@ -36,3 +36,6 @@ class Lexicon:
             wordID = self.size()
             self.lexicon[word] = wordID
             return wordID
+
+    def get(self, word: string):
+        return self.lexicon.get(word)

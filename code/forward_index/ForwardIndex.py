@@ -71,3 +71,20 @@ class ForwardIndex:
             docbytes = fwd_index.read(num_bytes)
 
             return Document.decode(docbytes)
+
+    def get_document_lite(self, docID: int):
+        from code.document.DocumentLite import DocumentLite
+
+        offset: int = self.get_offset(docID)
+
+        with open(self.DATA_FILE_PATH, "rb") as fwd_index:
+            fwd_index.seek(offset)
+
+            # first 4 bytes give number of bytes that encode entire document
+            num_bytes = struct.unpack("I", fwd_index.read(4))[0]
+
+            docbytes = fwd_index.read(num_bytes)
+
+            return DocumentLite.decode(docbytes)
+
+

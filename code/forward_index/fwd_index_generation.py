@@ -54,7 +54,7 @@ def store_rows_from_csv(csv_path):
 
 
 # takes about 5 minutes to run.
-def clean_all_csvs():
+def index_all_csvs():
     for i in range(1, 193 + 1):
         A = time.time()
         store_rows_from_csv(f"../../res/dataset/clean_split_dataset/clean_part_{i}.csv")
@@ -62,7 +62,7 @@ def clean_all_csvs():
 
 if __name__ == "__main__":
 
-   #clean_all_csvs()
+   #index_all_csvs
    pass
 lexicon.save_lexicon()
 
