@@ -51,33 +51,32 @@ class Document:
 
       def encode(self):
 
-          bytes = b''
+          bytes = io.BytesIO()
 
           #store title words
           num_title_words = len(self.title_words)
-          bytes += struct.pack("B", num_title_words) # num_title_words field
-          bytes += struct.pack(f"{num_title_words}I", *self.title_words) # title words field
+          bytes.write(struct.pack("B", num_title_words)) # num_title_words field
+          bytes.write(struct.pack(f"{num_title_words}I", *self.title_words)) # title words field
 
           # store tags
           num_tags = len(self.tags)
-          bytes += struct.pack("B", num_tags)  # num_tags field
-          bytes += struct.pack(f"{num_tags}I", *self.tags)  # tags words field
+          bytes.write(struct.pack("B", num_tags))  # num_tags field
+          bytes.write(struct.pack(f"{num_tags}I", *self.tags))  # tags words field
 
           # store DocumentBodyWords
           num_body_words = len(self.body_words)
-          bytes += struct.pack("I", num_body_words)  # num_body_words field
+          bytes.write(struct.pack("I", num_body_words))  # num_body_words field
           for body_word in self.body_words:
-              bytes += struct.pack("I", body_word.wordID) #wordID
+              bytes.write(struct.pack("I", body_word.wordID)) #wordID
               num_positions = len(body_word.positions)
-              bytes += struct.pack("H", num_positions)  # num_positions field
-              bytes += struct.pack(f"{num_positions}I", *body_word.positions)
+              bytes.write(struct.pack("H", num_positions))  # num_positions field
+              bytes.write(struct.pack(f"{num_positions}I", *body_word.positions))
 
-          return bytes
+          return bytes.getvalue()
       
       @classmethod
       def decode(cls, docbytes:bytes):
 
-          A = time.time()
           bstream = io.BytesIO(docbytes)
 
           # Read and decode the number of title words

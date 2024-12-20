@@ -1,96 +1,151 @@
-import math
+import io
 import os
-import pickle
+import struct
 
 from code.util.singleton import singleton
+from code.inverted_index.Barrel import Barrel, BarrelFullException
+from code.inverted_index.WordPresence import WordPresence
+
+
 @singleton
 class InvertedIndex:
+    '''
+    BARREL_INDEX: first 4 bytes store the RUNNING_BARREL_NUM, then its an array of 5 bytes per wordID (2 bytes barrel_num + 3 bytes in_barrel_pos)
+    '''
 
-    BARREL_ROOT_PATH = "../../res/inverted_index/"
-
-    BARREL_CAPACITY = 1000
-
-    open_barrels = {}
+    BARREL_INDEX_FILE_PATH = "../../res/inverted_index/barrel_index.bin"
+    BARREL_ROOT_PATH = "../../res/inverted_index/barrels/"
 
     def __init__(self):
+
+        if not os.path.isfile(self.BARREL_INDEX_FILE_PATH):
+            self.init_index_file()
+
         os.makedirs(self.BARREL_ROOT_PATH, exist_ok=True)
 
-    def get_barrel_path(self, barrel_num):
-        return self.BARREL_ROOT_PATH + f"barrel_{barrel_num}.pkl"
+    def running_barrel_num(self):
+        with open(self.BARREL_INDEX_FILE_PATH, "rb") as f:
+            return struct.unpack("I", f.read(4))[0]
 
-    # if it exists, returns the barrel (loads it if it isnt open)
-    # if it doesn't return None
-    def load_barrel(self, barrel_num) -> dict:
+    def init_index_file(self):
 
-        barrel = self.open_barrels.get(barrel_num)
-        if barrel is None:
-            try:
-                with open(self.get_barrel_path(barrel_num), "rb") as f:
-                    barrel =  pickle.load(f)
-                self.open_barrels[barrel_num] = barrel
-            except FileNotFoundError:
-                pass # if file doesn't exist, barrel remains None.
+        from code.lexicon_gen.Lexicon import Lexicon
+        with open(self.BARREL_INDEX_FILE_PATH, "wb") as f:
+            f.write(struct.pack("I", 1))  # first 4 bytes tell CURRENT_BARREL_NUM
+            lexicon = Lexicon()
+            size = lexicon.size()
+            del lexicon
+            bytes = struct.pack('H', 0) + (0).to_bytes(3, byteorder='big')
+            f.write(bytes * size)  # initial state, all wordIDs are "not indexed" (0,0) position.
 
-        return barrel
+    # a return of 0,0 means the document is NOT YET INDEXED but is in lexicon
+    # a return of -1,1 means its not in lexicon and obviously not indexed
+    def get_position(self, wordID):
 
-    def close_and_save_barrel(self, barrel_num):
+        offset = 4 + wordID * 5
 
-        barrel = self.open_barrels.get(barrel_num)
+        with open(self.BARREL_INDEX_FILE_PATH, "a+b") as f:
+            # doesn't yet exist, needs to be added first
+            if offset >= f.tell():
+                return -1, -1
 
-        if barrel is not None:
-            with open(self.get_barrel_path(barrel_num), "wb") as f:
-                pickle.dump(barrel, f)
-            del self.open_barrels[barrel_num]
+            f.seek(offset)
+            barrel_num = struct.unpack("H", f.read(2))[0]
+            in_barrel_pos = int.from_bytes(f.read(3), 'big')
+            return barrel_num, in_barrel_pos
 
-    def wordID_to_barrelNum(self, wordID):
-        return math.floor(wordID/self.BARREL_CAPACITY)
+    # this creates/updates an entry in the barrel_index file
+    def register_word(self, wordID, barrel_num, in_barrel_pos):
+        offset = 4 + wordID * 5
 
-    # keeps the barrel open after a fetch, returns doclist, or None if wordID not indexed.
+        with open(self.BARREL_INDEX_FILE_PATH, "r+b") as f:
+            # move to end
+            f.seek(0, io.SEEK_END)
+            '''
+            this happens in the following scenario:
+            wordID exceeds the last stored wordID in barrel index, but the existence of such a wordID implies that wordIDs smaller than it also
+            exist in the lexicon since its sequential, so pre-register them as 0,0
+            '''
+            empty_bytes = offset - f.tell()
+            if empty_bytes > 0:
+                f.write(struct.pack('B', 0) * empty_bytes)
+
+            f.seek(offset)
+            f.write(struct.pack("H", barrel_num))
+            f.write(in_barrel_pos.to_bytes(3, 'big'))
+
+    def increment_running_barrel(self):
+        with open(self.BARREL_INDEX_FILE_PATH, "r+b") as f:
+            old = struct.unpack("I", f.read(4))[0]
+            f.seek(0)
+            f.write(struct.pack("I", old + 1))
+
     def get(self, wordID):
-        barrel_num = self.wordID_to_barrelNum(wordID)
-        barrel = self.load_barrel(barrel_num)
+        barrel_num, in_barrel_pos = self.get_position(wordID)
 
-        if barrel is None:
-            return None
+        if barrel_num < 1:  # 0 and -1 both invalid
+            return
 
-        return barrel[wordID]
+        barrel = Barrel(barrel_num)
+        return barrel.get(in_barrel_pos)
 
-    # closes the barrel after fetching, returns doclist, None if wordID not indexed
-    def get_and_close(self, wordID):
-        barrel_num = self.wordID_to_barrelNum(wordID)
-        barrel = self.load_barrel(barrel_num)
 
-        if barrel is None:
-            return None
+    def accomodate(self, barrel, num_bytes):
+        popped_words = barrel.truncate(num_bytes)
+        for word_bytes in popped_words:
+            self.index_new_word(word_presence=word_bytes, test_novelty=False, from_bytes=True)
 
-        doclist = barrel[wordID]
-        self.close_and_save_barrel(barrel_num)
-        return doclist
+    # this is the more general operation and will be used when a new document has to be stored in inverted index
+    # document will be split into a set of (wordID,wordInDoc) pairs, each being added.
+    # from_bytes should only be true if wordInDoc represents the COMPLETE bytes |docID|wordInDoc|
+    def add_wordInDoc(self, wordID,docID, wordInDoc, from_bytes = False):
 
-    def make_barrel(self, barrel_num):
-        barrel = {}
-        self.open_barrels[barrel_num] = barrel
-        return barrel
-    def put(self, wordID, docID):
-        barrel_num = self.wordID_to_barrelNum(wordID)
-        barrel = self.load_barrel(barrel_num)
-
-        # barrel doesn't exist
-        if barrel is None:
-            barrel = self.make_barrel(barrel_num)
-            barrel[wordID] = {docID}
+        barrel_num, in_barrel_pos = self.get_position(wordID)
+        if not from_bytes:
+            encoded_bytes = struct.pack("I", docID) + wordInDoc.encode()
         else:
-            # wordID doesnt exist in barrel, not yet indexed
-            if barrel.get(wordID) is None:
-                barrel[wordID] = {docID}
-            # there already exists a barrel
-            else:
-                barrel[wordID].add(docID)
+            encoded_bytes = wordInDoc
 
-    # close all barrels in the index, save "State" of inverted index
-    def close(self):
-        for (barrel_num, barrel) in self.open_barrels.items():
-            with open(self.get_barrel_path(barrel_num), "wb") as f:
-                pickle.dump(barrel, f)
-        self.open_barrels = {}
+        # updating the word, it is already indexed
+        if barrel_num >= 1:
+            barrel = Barrel(barrel_num)
+            try:
+                barrel.update_word_presence(in_barrel_pos, docID, encoded_bytes, from_bytes=True)
+            except BarrelFullException:
+                   self.accomodate(barrel, len(encoded_bytes))
+                   self.add_wordInDoc(wordID, docID, encoded_bytes, from_bytes=True)
 
+
+        # barrel_num = 0 or -1
+        else:
+            presence = WordPresence(wordID)
+            presence.add_doc(docID, wordInDoc)
+
+            # this registers as well
+            self.index_new_word(presence, test_novelty=False)
+
+    # novely checks if word hasnt already been indexed, won't need to do this if check is done externally.
+    def index_new_word(self, word_presence, test_novelty, from_bytes = False):
+
+        if test_novelty:
+            barrel_num, _ = self.get_position(word_presence.wordID)
+
+            # i.e not yet indexed
+            assert barrel_num < 1
+
+        barrel_num = self.running_barrel_num()
+
+        barrel = Barrel(barrel_num)
+
+
+        try:
+            in_barrel_pos = barrel.index_new_word(word_presence, from_bytes=from_bytes)
+        except BarrelFullException:
+            barrel_num += 1
+            self.increment_running_barrel()
+            in_barrel_pos = Barrel(barrel_num).index_new_word(word_presence,from_bytes=from_bytes)
+
+        if not from_bytes:
+            self.register_word(word_presence.wordID, barrel_num, in_barrel_pos)
+        else:
+            self.register_word(struct.unpack("I",word_presence[0:4])[0], barrel_num, in_barrel_pos)
