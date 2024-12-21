@@ -63,21 +63,11 @@ class ResultGeneration:
 
                 overall_result_set.union(result_set)
 
-
-        # threshold = ceil(len(self.query_word_ids)/2)
-        # universal_doc_list = []
-        # for word_id in self.query_word_ids:
-        #     universal_doc_list.extend(inverted_index.get(word_id).docSet)
-        #
-        # doc_frequency = Counter(universal_doc_list)
-        #
-        # doc_id_list = [doc for doc, count in doc_frequency.items() if count >= threshold]
-
-        sorted_doc_id_list = self._rank_documents(doc_id_list)
+        sorted_doc_id_list = self._rank_documents(overall_result_set)
 
         return sorted_doc_id_list
 
-    def _rank_documents(self, doc_id_list: list):
+    def _rank_documents(self, doc_id_list: set):
         scores = {}
 
         for doc_id in doc_id_list:
