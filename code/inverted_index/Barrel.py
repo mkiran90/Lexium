@@ -38,13 +38,13 @@ class Barrel:
         with open(self.DATA_FILE_PATH, "ab") as f:
             return f.tell()
 
-    def get_offset(self, in_barrel_pos):
+    def _get_offset(self, in_barrel_pos):
         with open(self.OFFSET_FILE_PATH, "rb") as f:
             f.seek(4*in_barrel_pos)
             return struct.unpack('I', f.read(4))[0]
 
     def get(self, in_barrel_pos):
-        offset = self.get_offset(in_barrel_pos)
+        offset = self._get_offset(in_barrel_pos)
         with open(self.DATA_FILE_PATH, "rb") as f:
             f.seek(offset)
             wordID = struct.unpack('I', f.read(4))[0]
@@ -54,7 +54,7 @@ class Barrel:
 
 
     # 256 kB chunk size
-    def insert(self,f, position, new_bytes, chunk_size=256 * 1024):
+    def _insert(self,f, position, new_bytes, chunk_size=256 * 1024):
 
         # Ensure the file descriptor is at the beginning
         f.seek(0)
@@ -86,7 +86,7 @@ class Barrel:
         os.remove(temp_file_path)
 
     # increment all offsets that come after in_barrel_pos in offset file by num_bytes
-    def increment_offsets(self, in_barrel_pos, num_bytes):
+    def _increment_offsets(self, in_barrel_pos, num_bytes):
         with open(self.OFFSET_FILE_PATH, "r+b") as f:
              offset = 4*(in_barrel_pos + 1) # start from position AFTER in_barrel_pos
              f.seek(offset)
@@ -109,13 +109,13 @@ class Barrel:
         if not self.has_space(len(encoded_bytes)):
             raise BarrelFullException
 
-        offset = self.get_offset(in_barrel_pos)
+        offset = self._get_offset(in_barrel_pos)
 
         with open(self.DATA_FILE_PATH, "r+b") as f:
             f.seek(offset+4) # first 4 bytes are wordID, so skip
             num_bytes = struct.unpack("I", f.read(4))[0]
             num_docInWords = struct.unpack("I", f.read(4))[0]
-            self.insert(f, offset + 8 + num_bytes, encoded_bytes)
+            self._insert(f, offset + 8 + num_bytes, encoded_bytes)
 
             # update byte size of wordPresence
             f.seek(offset+4)
@@ -125,7 +125,7 @@ class Barrel:
             f.seek(offset + 8)
             f.write(struct.pack("I", num_docInWords + 1))
 
-            self.increment_offsets(in_barrel_pos, len(encoded_bytes))
+            self._increment_offsets(in_barrel_pos, len(encoded_bytes))
 
     # this is only relevant when directly adding entire word presences when building inv index from fwd index
     # is is guaranteed by caller that the wordID is not indexed i.e in barrel index get_position(wordID) should return 0,0 / -1,-1

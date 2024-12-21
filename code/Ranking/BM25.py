@@ -55,7 +55,7 @@ class BM25:
 
     def _idf(self, wordID):
         # Calculate the inverse document frequency (IDF) for the word
-        barrel_num, in_barrel_pos = self.inverted_index.get_position(wordID)
+        barrel_num, in_barrel_pos = self.inverted_index._get_position(wordID)
         if barrel_num <= 0:
             return 0  # Word not indexed, IDF is 0
         barrel = Barrel(barrel_num)
@@ -66,7 +66,7 @@ class BM25:
     def _doc_len(self, docID):
         # Calculate the length of a document (number of terms)
         # doc_len = 0
-        document = self.forward_index.get_document(docID)
+        document = self.forward_index.get(docID)
 
         # for barrel_num in range(1, self.inverted_index.running_barrel_num() + 1):
         #     barrel = Barrel(barrel_num)
@@ -78,7 +78,7 @@ class BM25:
     def _term_freq_in_doc(self, wordID, docID):
         # Count the frequency of the word in the document
         term_freq = 0
-        barrel_num, in_barrel_pos = self.inverted_index.get_position(wordID)
+        barrel_num, in_barrel_pos = self.inverted_index._get_position(wordID)
         if barrel_num <= 0:
             return 0
         barrel = Barrel(barrel_num)
@@ -121,7 +121,7 @@ class BM25:
     def rank_documents(self, query_wordIDs):
         # Rank documents based on BM25 score
         scores = {}
-        for barrel_num in range(1, self.inverted_index.running_barrel_num() + 1):
+        for barrel_num in range(1, self.inverted_index._running_barrel_num() + 1):
             barrel = Barrel(barrel_num)
             for word_presence in barrel.get_all_word_presences():
                 # Loop through all the documents containing the word
@@ -135,7 +135,7 @@ class BM25:
 
     def calculate_word_relevance_for_all_docs(self, wordID):
         # Calculate BM25 relevance for all docs for a given wordID
-        barrel_num, in_barrel_pos = self.inverted_index.get_position(wordID)
+        barrel_num, in_barrel_pos = self.inverted_index._get_position(wordID)
         if barrel_num <= 0:
             return []  # Word not indexed
         barrel = Barrel(barrel_num)

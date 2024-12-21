@@ -51,7 +51,7 @@ class MetadataHandler:
             return 0, 0  # Return zero if no documents
 
         for docID in range(total_docs):
-            document = self.forward_index.get_document(docID) 
+            document = self.forward_index.get(docID)
             total_length += self.calculate_body_words(document) 
 
         avg_doc_length = total_length / total_docs if total_docs > 0 else 0

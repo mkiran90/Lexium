@@ -8,7 +8,7 @@ inv_index = InvertedIndex()
 # takes about 127 seconds
 def build_inv_index():
     for docID in range(0, fwd_index.size()):
-        doc = fwd_index.get_document(docID)
+        doc = fwd_index.get(docID)
         for word in doc.body_words:
             inv_index.put(word.wordID, docID)
         for wordID in doc.title_words:

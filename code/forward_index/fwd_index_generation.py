@@ -48,7 +48,7 @@ def store_rows_from_csv(csv_path):
             document = row_to_document(row)
             docIDl = document.store(index)
 
-            docIDd = urlDict.store_url(row["url"])
+            docIDd = urlDict.store(row["url"])
 
             assert docIDl==docIDd
 

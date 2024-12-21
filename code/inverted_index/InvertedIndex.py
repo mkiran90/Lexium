@@ -19,15 +19,15 @@ class InvertedIndex:
     def __init__(self):
 
         if not os.path.isfile(self.BARREL_INDEX_FILE_PATH):
-            self.init_index_file()
+            self._init_index_file()
 
         os.makedirs(self.BARREL_ROOT_PATH, exist_ok=True)
 
-    def running_barrel_num(self):
+    def _running_barrel_num(self):
         with open(self.BARREL_INDEX_FILE_PATH, "rb") as f:
             return struct.unpack("I", f.read(4))[0]
 
-    def init_index_file(self):
+    def _init_index_file(self):
 
         from code.lexicon_gen.Lexicon import Lexicon
         with open(self.BARREL_INDEX_FILE_PATH, "wb") as f:
@@ -40,7 +40,7 @@ class InvertedIndex:
 
     # a return of 0,0 means the document is NOT YET INDEXED but is in lexicon
     # a return of -1,1 means its not in lexicon and obviously not indexed
-    def get_position(self, wordID):
+    def _get_position(self, wordID):
 
         offset = 4 + wordID * 5
 
@@ -55,7 +55,7 @@ class InvertedIndex:
             return barrel_num, in_barrel_pos
 
     # this creates/updates an entry in the barrel_index file
-    def register_word(self, wordID, barrel_num, in_barrel_pos):
+    def _register_word(self, wordID, barrel_num, in_barrel_pos):
         offset = 4 + wordID * 5
 
         with open(self.BARREL_INDEX_FILE_PATH, "r+b") as f:
@@ -74,14 +74,14 @@ class InvertedIndex:
             f.write(struct.pack("H", barrel_num))
             f.write(in_barrel_pos.to_bytes(3, 'big'))
 
-    def increment_running_barrel(self):
+    def _increment_running_barrel(self):
         with open(self.BARREL_INDEX_FILE_PATH, "r+b") as f:
             old = struct.unpack("I", f.read(4))[0]
             f.seek(0)
             f.write(struct.pack("I", old + 1))
 
     def get(self, wordID):
-        barrel_num, in_barrel_pos = self.get_position(wordID)
+        barrel_num, in_barrel_pos = self._get_position(wordID)
 
         if barrel_num < 1:  # 0 and -1 both invalid
             return
@@ -90,7 +90,7 @@ class InvertedIndex:
         return barrel.get(in_barrel_pos)
 
 
-    def accomodate(self, barrel, num_bytes):
+    def _accomodate(self, barrel, num_bytes):
         popped_words = barrel.truncate(num_bytes)
         for word_bytes in popped_words:
             self.index_new_word(word_presence=word_bytes, test_novelty=False, from_bytes=True)
@@ -98,9 +98,9 @@ class InvertedIndex:
     # this is the more general operation and will be used when a new document has to be stored in inverted index
     # document will be split into a set of (wordID,wordInDoc) pairs, each being added.
     # from_bytes should only be true if wordInDoc represents the COMPLETE bytes |docID|wordInDoc|
-    def add_wordInDoc(self, wordID,docID, wordInDoc, from_bytes = False):
+    def add(self, wordID, docID, wordInDoc, from_bytes = False):
 
-        barrel_num, in_barrel_pos = self.get_position(wordID)
+        barrel_num, in_barrel_pos = self._get_position(wordID)
         if not from_bytes:
             encoded_bytes = struct.pack("I", docID) + wordInDoc.encode()
         else:
@@ -112,8 +112,8 @@ class InvertedIndex:
             try:
                 barrel.update_word_presence(in_barrel_pos, docID, encoded_bytes, from_bytes=True)
             except BarrelFullException:
-                   self.accomodate(barrel, len(encoded_bytes))
-                   self.add_wordInDoc(wordID, docID, encoded_bytes, from_bytes=True)
+                   self._accomodate(barrel, len(encoded_bytes))
+                   self.add(wordID, docID, encoded_bytes, from_bytes=True)
 
 
         # barrel_num = 0 or -1
@@ -128,12 +128,12 @@ class InvertedIndex:
     def index_new_word(self, word_presence, test_novelty, from_bytes = False):
 
         if test_novelty:
-            barrel_num, _ = self.get_position(word_presence.wordID)
+            barrel_num, _ = self._get_position(word_presence.wordID)
 
             # i.e not yet indexed
             assert barrel_num < 1
 
-        barrel_num = self.running_barrel_num()
+        barrel_num = self._running_barrel_num()
 
         barrel = Barrel(barrel_num)
 
@@ -142,10 +142,10 @@ class InvertedIndex:
             in_barrel_pos = barrel.index_new_word(word_presence, from_bytes=from_bytes)
         except BarrelFullException:
             barrel_num += 1
-            self.increment_running_barrel()
+            self._increment_running_barrel()
             in_barrel_pos = Barrel(barrel_num).index_new_word(word_presence,from_bytes=from_bytes)
 
         if not from_bytes:
-            self.register_word(word_presence.wordID, barrel_num, in_barrel_pos)
+            self._register_word(word_presence.wordID, barrel_num, in_barrel_pos)
         else:
-            self.register_word(struct.unpack("I",word_presence[0:4])[0], barrel_num, in_barrel_pos)
+            self._register_word(struct.unpack("I", word_presence[0:4])[0], barrel_num, in_barrel_pos)
