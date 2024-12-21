@@ -13,24 +13,24 @@ class InvertedIndex:
     BARREL_INDEX: first 4 bytes store the RUNNING_BARREL_NUM, then its an array of 5 bytes per wordID (2 bytes barrel_num + 3 bytes in_barrel_pos)
     '''
 
-    BARREL_INDEX_FILE_PATH = "../../res/inverted_index/barrel_index.bin"
-    BARREL_ROOT_PATH = "../../res/inverted_index/barrels/"
+    _BARREL_INDEX_FILE_PATH = "../../res/inverted_index/barrel_index.bin"
+    _BARREL_ROOT_PATH = "../../res/inverted_index/barrels/"
 
     def __init__(self):
 
-        if not os.path.isfile(self.BARREL_INDEX_FILE_PATH):
+        if not os.path.isfile(self._BARREL_INDEX_FILE_PATH):
             self._init_index_file()
 
-        os.makedirs(self.BARREL_ROOT_PATH, exist_ok=True)
+        os.makedirs(self._BARREL_ROOT_PATH, exist_ok=True)
 
     def _running_barrel_num(self):
-        with open(self.BARREL_INDEX_FILE_PATH, "rb") as f:
+        with open(self._BARREL_INDEX_FILE_PATH, "rb") as f:
             return struct.unpack("I", f.read(4))[0]
 
     def _init_index_file(self):
 
         from code.lexicon_gen.Lexicon import Lexicon
-        with open(self.BARREL_INDEX_FILE_PATH, "wb") as f:
+        with open(self._BARREL_INDEX_FILE_PATH, "wb") as f:
             f.write(struct.pack("I", 1))  # first 4 bytes tell CURRENT_BARREL_NUM
             lexicon = Lexicon()
             size = lexicon.size()
@@ -44,7 +44,7 @@ class InvertedIndex:
 
         offset = 4 + wordID * 5
 
-        with open(self.BARREL_INDEX_FILE_PATH, "a+b") as f:
+        with open(self._BARREL_INDEX_FILE_PATH, "a+b") as f:
             # doesn't yet exist, needs to be added first
             if offset >= f.tell():
                 return -1, -1
@@ -58,7 +58,7 @@ class InvertedIndex:
     def _register_word(self, wordID, barrel_num, in_barrel_pos):
         offset = 4 + wordID * 5
 
-        with open(self.BARREL_INDEX_FILE_PATH, "r+b") as f:
+        with open(self._BARREL_INDEX_FILE_PATH, "r+b") as f:
             # move to end
             f.seek(0, io.SEEK_END)
             '''
@@ -75,7 +75,7 @@ class InvertedIndex:
             f.write(in_barrel_pos.to_bytes(3, 'big'))
 
     def _increment_running_barrel(self):
-        with open(self.BARREL_INDEX_FILE_PATH, "r+b") as f:
+        with open(self._BARREL_INDEX_FILE_PATH, "r+b") as f:
             old = struct.unpack("I", f.read(4))[0]
             f.seek(0)
             f.write(struct.pack("I", old + 1))

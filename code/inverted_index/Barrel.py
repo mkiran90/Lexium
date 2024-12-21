@@ -9,12 +9,12 @@ class BarrelFullException(Exception):
     pass
 
 class Barrel:
-    BARREL_CAPACITY = 1024*1024 * 1024  # 1GB
-    PARENT_PATH = "../../res/inverted_index/barrels/"
+    _BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
+    _PARENT_PATH = "../../res/inverted_index/barrels/"
 
     def __init__(self, barrel_num):
 
-        self.BARREL_PATH = f"{self.PARENT_PATH}{barrel_num}/"
+        self.BARREL_PATH = f"{self._PARENT_PATH}{barrel_num}/"
         os.makedirs(self.BARREL_PATH, exist_ok=True)
 
         self.DATA_FILE_PATH = self.BARREL_PATH + "data.bin"
@@ -27,7 +27,7 @@ class Barrel:
 
     def has_space(self, num_bytes):
         with open(self.DATA_FILE_PATH, "ab") as f:
-            return (self.BARREL_CAPACITY - f.tell()) >= num_bytes
+            return (self._BARREL_CAPACITY - f.tell()) >= num_bytes
 
     # number of indexed words
     def size(self):

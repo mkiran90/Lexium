@@ -24,29 +24,29 @@ positions -> num_positions * 4 b (4b wordIDs uint32)
 
 @singleton
 class ForwardIndex:
-    OFFSET_FILE_PATH = "../../res/forward_index/offset_file.bin"
-    DATA_FILE_PATH = "../../res/forward_index/data_file.bin"
+    _OFFSET_FILE_PATH = "../../res/forward_index/offset_file.bin"
+    _DATA_FILE_PATH = "../../res/forward_index/data_file.bin"
 
     def __init__(self):
-        if not os.path.isfile(self.DATA_FILE_PATH):
+        if not os.path.isfile(self._DATA_FILE_PATH):
             self._create_data_file()
-        if not os.path.isfile(self.OFFSET_FILE_PATH):
-            open(self.OFFSET_FILE_PATH, "x") # safe creation
+        if not os.path.isfile(self._OFFSET_FILE_PATH):
+            open(self._OFFSET_FILE_PATH, "x") # safe creation
 
     @classmethod
     def _create_data_file(cls):
         # first 4 bytes need to be occupied by the size of the forward index, which rn is 0.
-        with open(cls.DATA_FILE_PATH, "wb") as data_file:
+        with open(cls._DATA_FILE_PATH, "wb") as data_file:
             data_file.write(b'\x00\x00\x00\x00') # binary of 0 as uint32
 
     def size(self):
-        with open(self.DATA_FILE_PATH, "rb") as fwd_index:
+        with open(self._DATA_FILE_PATH, "rb") as fwd_index:
             return struct.unpack("I", fwd_index.read(4))[0]
 
 
     # get pointer (offset for fwd index data file) to first byte of data for this docID
     def _get_offset(self, docID: int):
-        with open(self.OFFSET_FILE_PATH, "rb") as offset_file:
+        with open(self._OFFSET_FILE_PATH, "rb") as offset_file:
             offset_file.seek(4 * docID)
             return struct.unpack("I", offset_file.read(4))[0]
 
@@ -55,7 +55,7 @@ class ForwardIndex:
 
         offset: int = self._get_offset(docID)
 
-        with open(self.DATA_FILE_PATH, "rb") as fwd_index:
+        with open(self._DATA_FILE_PATH, "rb") as fwd_index:
             fwd_index.seek(offset)
 
             # first 4 bytes give number of bytes that encode entire document
@@ -70,7 +70,7 @@ class ForwardIndex:
 
         offset: int = self._get_offset(docID)
 
-        with open(self.DATA_FILE_PATH, "rb") as fwd_index:
+        with open(self._DATA_FILE_PATH, "rb") as fwd_index:
             fwd_index.seek(offset)
 
             # first 4 bytes give number of bytes that encode entire document

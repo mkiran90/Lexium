@@ -23,7 +23,7 @@ class Document:
 
           #write data to data file
           bytes = self.encode()
-          with open(index.DATA_FILE_PATH, "ab") as fwd_index:
+          with open(index._DATA_FILE_PATH, "ab") as fwd_index:
               offset = fwd_index.tell()
 
               # write size in bytes in the first 4 bytes
@@ -32,13 +32,13 @@ class Document:
               fwd_index.write(bytes)
 
           # update size counter
-          with open(index.DATA_FILE_PATH, "r+b") as fwd_index:
+          with open(index._DATA_FILE_PATH, "r+b") as fwd_index:
               old_size = struct.unpack("I", fwd_index.read(4))[0]
               fwd_index.seek(0)
               fwd_index.write(struct.pack("I", old_size + 1))
 
           #write offset to offset file
-          with open(index.OFFSET_FILE_PATH, "ab") as offset_file:
+          with open(index._OFFSET_FILE_PATH, "ab") as offset_file:
 
                 '''
                 docIDs are sequential. offset_file is essentially an array of 4 byte integers
