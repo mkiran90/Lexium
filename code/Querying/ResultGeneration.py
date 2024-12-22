@@ -1,5 +1,3 @@
-from itertools import combinations
-
 from code.Ranking.BM25 import get_bm25_score
 from code.Ranking.Proximity import get_proximity_score
 from code.forward_index.ForwardIndex import ForwardIndex
@@ -92,7 +90,7 @@ class ResultGeneration:
 
         relevant_doc_ids = self._relevant_docs()
         sorted_doc_id_list = self._rank_documents(relevant_doc_ids)
-        return [(docID,urlDict.get_url(docID)) for docID in sorted_doc_id_list]
+        return [(docID,urlDict.get(docID)) for docID in sorted_doc_id_list]
 
     def _rank_documents(self, doc_id_list: set):
         scores = {}

@@ -19,6 +19,9 @@ class Document:
       def word_count(self):
           return len(self.body_words)
 
+      def doc_length(self):
+          return sum([len(word.positions) for word in self.body_words])
+
       def store(self, index):
 
           #write data to data file

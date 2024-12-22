@@ -60,7 +60,7 @@ def _idf(word_presence):
     return math.log( ((doc_count - doc_freq + 0.5) / (doc_freq + 0.5)) + 1.0)
 
 def _doc_len(docID):
-    return forward_index.get_word_count_direct(docID)
+    return 300
 
 def _body_frequency(word_presence, docID):
     return word_presence.docMap[docID].body_frequency()
@@ -70,7 +70,6 @@ def _title_frequency(word_presence, docID):
 def _term_bm25(presence, docID, doc_len):
     idf = _idf(presence)
     f = _body_frequency(presence, docID)
-    print(idf, f)
     term_score = idf * (
             (f * (k1 + 1)) / (f + k1 * (1 - b + (b * (doc_len / avg_doc_length)))))
     return term_score
