@@ -34,6 +34,11 @@ class WordInDoc:
 
         return WordInDoc(title_positions, body_positions)
 
+    def body_frequency(self):
+        return len(self.body_positions)
+    def title_frequency(self):
+        return len(self.title_positions)
+
 
 
 # encodes the "presence" of a word in the corpus, which is whats stored against the wordID in inverted index
