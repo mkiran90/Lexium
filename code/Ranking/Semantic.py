@@ -1,17 +1,17 @@
 import time
 
+import numpy as np
 import torch
 
-from sentence_transformers import SentenceTransformer
-from sentence_transformers.util import cos_sim, semantic_search
+from sentence_transformers.util import cos_sim
 
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+from code.document.DocumentMetadata import DocumentMetadata
+from code.lexicon_gen.Lexicon import Lexicon
+from code.lexicon_gen.WordEmbedding import WordEmbedding
 
-FILE = "model.pth"
-
-# model = torch.load(FILE)
-torch.save(model, FILE)
-
+document_metadata = DocumentMetadata()
+word_embedding = WordEmbedding()
+lexicon = Lexicon()
 
 def encode_document(model, document, chunk_size=1024):
     # Split document into chunks of chunk_size words
@@ -22,13 +22,38 @@ def encode_document(model, document, chunk_size=1024):
     document_embedding = chunk_embeddings.mean(dim=0)
     return document_embedding
 
+def cosine_similarity(a, b):
 
+    # Compute the dot product of a and b
+    dot_product = np.dot(a, b)
 
-def get_semantic_score(query, document):
+    # Compute the magnitudes of a and b
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
 
-    query_embedding = model.encode(query, convert_to_tensor=True)
-    doc_embedding = encode_document(model, document)
+    # Compute cosine similarity
+    if norm_a == 0 or norm_b == 0:
+        return 0.0  # Handle zero vectors
+    return dot_product / (norm_a * norm_b)
 
-    score = cos_sim(query_embedding, doc_embedding).item()
+def get_semantic_score(query, doc_id):
+
+    vec_sum = np.zeros(shape=(300,))
+
+    if len(query) == 0:
+        query_embedding = vec_sum
+    else:
+        for word in query:
+            word_id = lexicon.get(word)
+            vec = word_embedding.get_word_embedding(word_id)
+
+            if vec is not None:
+                vec_sum += vec
+
+        query_embedding = (vec_sum / len(query)).astype(np.float32)
+
+    doc_embedding = document_metadata.get_doc_embedding(doc_id)
+
+    score = cosine_similarity(query_embedding, doc_embedding)
 
     return score

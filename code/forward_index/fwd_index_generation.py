@@ -1,8 +1,9 @@
 import csv
 import time
 
+from code.forward_index.ForwardIndex import ForwardIndex
 from code.lexicon_gen.Lexicon import Lexicon
-from ForwardIndex import ForwardIndex
+
 from code.document.DocURLDict import DocURLDict
 
 index = ForwardIndex()

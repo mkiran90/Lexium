@@ -1,14 +1,20 @@
+from code import document
 from code.Ranking.BM25 import get_bm25_score
 from code.Ranking.Proximity import get_proximity_score
+from code.Ranking.Semantic import get_semantic_score
+from code.document.DocumentMetadata import DocumentMetadata
 from code.forward_index.ForwardIndex import ForwardIndex
 from code.inverted_index.InvertedIndex import InvertedIndex
 from code.lexicon_gen.Lexicon import Lexicon
 from code.document.DocURLDict import DocURLDict
+from code.lexicon_gen.WordEmbedding import WordEmbedding
 
 inverted_index = InvertedIndex()
 forward_index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
+document_metadata = DocumentMetadata()
+word_embedding = WordEmbedding()
 class ResultGeneration:
 
     def __init__(self, query):
@@ -50,7 +56,7 @@ class ResultGeneration:
 
         score = 0
         score += get_bm25_score(self.presenceMap, doc_id)
-        # score += 0.25 * get_semantic_score(self.query, document)
+        score += 0.25 * get_semantic_score(self.query.split(), doc_id)
         if len(self.query_word_ids) > 1:
             score += get_proximity_score(self.presenceMap, doc_id)
 
