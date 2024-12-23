@@ -24,7 +24,7 @@ class DocumentMetadata:
         with open(cls._METADATA_FILE_PATH, "wb") as metadata_file:
             metadata_file.write(b'\x00\x00\x00\x00')
 
-    def size(self):
+    def total_word_count(self):
         with open(self._METADATA_FILE_PATH, "rb") as metadata_file:
             return struct.unpack("I", metadata_file.read(4))[0]
 
