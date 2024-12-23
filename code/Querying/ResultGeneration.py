@@ -58,7 +58,7 @@ class ResultGeneration:
 
         score = 0.15 * get_bm25_score(self.presence_map, doc_id) * get_body_prox_score(self.presence_map, doc_id)
         score += 0.45 * get_title_score(self.presence_map, doc_id) * get_title_prox_score(self.presence_map, doc_id)
-        score += 0.4 * get_semantic_score(self.query, doc_id)
+        score += 0.3 * get_semantic_score(self.query, doc_id)
 
         return score
 

@@ -50,7 +50,9 @@ def _get_position_pairs(t1_positions: list, t2_positions: list):
                 next_diff = abs(t1_positions[i + 1] - t2_positions[j])
             current_diff = abs(t1_positions[i] - t2_positions[j])
 
-        pairs.append((t1_positions[i], t2_positions[j]))
+        if t1_positions[i] < t2_positions[j]:
+            pairs.append((t1_positions[i], t2_positions[j]))
+
         i += 1
         t2_positions.pop(j)
 
@@ -85,8 +87,11 @@ def get_title_prox_score(presenceMap, docID: int):
 
 
 def get_body_prox_score(presenceMap, docID: int):
-    score = 0
+    score = 1
     pairs: list = _get_query_pairs(presenceMap.keys())
+
+    if not pairs:
+        return score
 
     for pair in pairs:
         t1_body_positions = presenceMap[pair[0]].docMap[docID].body_positions
@@ -112,13 +117,13 @@ def _calculate_proximity(t1_positions, t2_positions):
 
     for pos_pair in position_pairs:
         difference = pos_pair[1] - pos_pair[0]
-
-        if difference > 0:
-            proximity_sum += difference
-        else:
-            proximity_sum += 2 * abs(difference)
+        proximity_sum += difference
 
     return proximity_sum / len(position_pairs)
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
+    list1 = [3, 8, 12, 17, 23, 29, 34, 42]
+    list2 = [2, 5, 10, 14, 20, 25, 31]
+
+    print(_get_position_pairs(list1, list2))
