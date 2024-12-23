@@ -1,9 +1,7 @@
 import time
 
-from code import document
-from code.Ranking.BM25 import get_bm25_score
+from code.Ranking.BM25 import get_bm25_score,_idf
 from code.Ranking.Proximity import get_body_prox_score, get_title_prox_score
-# from code.Ranking.Proximity import get_proximity_score
 from code.Ranking.Semantic import get_semantic_score
 from code.Ranking.TitleScore import get_title_score
 from code.document.DocumentMetadata import DocumentMetadata
@@ -26,17 +24,28 @@ class ResultGeneration:
         self.query = data_cleaning.clean_title(query)
         self.query = self.query.split()
         self.query_word_ids = set([lexicon.get(word) for word in self.query if lexicon.get(word) is not None])
-        self.presence_map = {}
-        self._populate_presence_map()
+        self.presence_map = self._generate_presence_map()
+        self.idf_map = self._generate_idf_map()
 
-    def _populate_presence_map(self):
+    def _generate_presence_map(self):
 
         # TODO: make sure each wordID is indexed first so assertion never fails
 
+        presence_map = {}
         for wordID in self.query_word_ids:
             presence = inverted_index.get(wordID)
             assert presence is not None
-            self.presence_map[wordID] = presence
+            presence_map[wordID] = presence
+        return presence_map
+
+    def _generate_idf_map(self):
+
+        idf_map = {}
+        for wordID in self.query_word_ids:
+            idf_map[wordID] = _idf(self.presence_map[wordID])
+
+        return idf_map
+
 
     def _relevant_docs(self):
 
@@ -55,12 +64,9 @@ class ResultGeneration:
 
     def _get_total_doc_score(self, doc_id):
 
-        # TODO: load document's clean body text using clean csv
-        # document_word_ids = [body_word.wordID for body_word in forward_index.get_document(doc_id).body_words]
-
-        score = 0.25 * get_bm25_score(self.presence_map, doc_id) * get_body_prox_score(self.presence_map, doc_id)
+        score = 0.25 * get_bm25_score(self.presence_map, self.idf_map, doc_id, document_metadata) * get_body_prox_score(self.presence_map, doc_id)
         score += 0.45 * get_title_score(self.presence_map, doc_id) * get_title_prox_score(self.presence_map, doc_id)
-        score += 0.3 * get_semantic_score(self.query, doc_id)
+        score += 0.3 * get_semantic_score(self.query_word_ids, doc_id, word_embedding, document_metadata)
 
         return score
 

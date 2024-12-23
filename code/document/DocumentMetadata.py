@@ -2,12 +2,7 @@ import os
 import struct
 
 import numpy as np
-
-from code.forward_index.fwd_index_generation import lexicon
 from code.util.singleton import singleton
-
-
-inv_lexicon = list(lexicon._lexicon.keys())
 
 @singleton
 class DocumentMetadata:
@@ -86,7 +81,7 @@ class DocumentMetadata:
         else:
             return None
 
-    def body_meaning(self, body_words, model):
+    def body_meaning(self, body_words, model, inv_lexicon):
 
         total = 0
         vec_sum = np.zeros(shape=(300,))

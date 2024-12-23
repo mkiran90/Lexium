@@ -1,6 +1,5 @@
 import io
 import struct
-import time
 
 class DocumentBodyWord:
     def __init__(self, wordID, positions):

@@ -1,9 +1,4 @@
 from itertools import combinations
-from code.inverted_index.InvertedIndex import InvertedIndex
-# from code.testing.testing import result_generation, doc_url_dict
-
-inverted_index = InvertedIndex()
-
 
 def _get_position_pairs(t1_positions: list, t2_positions: list):
     pairs = []

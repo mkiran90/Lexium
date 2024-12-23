@@ -26,12 +26,14 @@ Method of retrieval:
     - no. of documents containing the term (t): inverted index
     - total no. of documents: metadata
 '''
+
+# open and close
 document_metadata = DocumentMetadata()
 forward_index = ForwardIndex()
-
-
 doc_count = forward_index.size()
 avg_doc_length = document_metadata.total_word_count() / doc_count
+del document_metadata, forward_index
+
 k1 = 1.2
 b = 0.75
 
@@ -39,20 +41,19 @@ def _idf(word_presence):
     doc_freq = len(word_presence.docSet)  # Number of documents the word appears in
     return math.log( ((doc_count - doc_freq + 0.5) / (doc_freq + 0.5)) + 1.0)
 
-def _term_bm25(presence, docID, doc_len):
-    idf = _idf(presence)
+def _term_bm25(presence, term_idf, docID, doc_len):
     f = presence.docMap[docID].body_frequency()
-    term_score = idf * ((f * (k1 + 1)) / (f + k1 * (1 - b + (b * (doc_len / avg_doc_length)))))
+    term_score = term_idf * ((f * (k1 + 1)) / (f + k1 * (1 - b + (b * (doc_len / avg_doc_length)))))
 
     return term_score
 
-def get_bm25_score(presenceMap, docID):
+def get_bm25_score(presenceMap, idf_map, docID, document_metadata):
     # Calculate BM25 score for a document for a given query (now works with wordID directly)
     score = 0
     doc_len = document_metadata.get_doc_length(docID)
 
     for (wordID, presence) in presenceMap.items():
-       term_score = _term_bm25(presence, docID, doc_len)
+       term_score = _term_bm25(presence, idf_map[wordID], docID, doc_len)
 
        score += term_score
 
