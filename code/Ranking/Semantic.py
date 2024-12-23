@@ -1,9 +1,6 @@
 import time
 
 import numpy as np
-import torch
-
-from sentence_transformers.util import cos_sim
 
 from code.document.DocumentMetadata import DocumentMetadata
 from code.lexicon_gen.Lexicon import Lexicon

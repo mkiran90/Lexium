@@ -1,3 +1,5 @@
+import time
+
 from code import document
 from code.Ranking.BM25 import get_bm25_score
 from code.Ranking.Proximity import get_body_prox_score, get_title_prox_score
@@ -56,9 +58,9 @@ class ResultGeneration:
         # TODO: load document's clean body text using clean csv
         # document_word_ids = [body_word.wordID for body_word in forward_index.get_document(doc_id).body_words]
 
-        score = 0.15 * get_bm25_score(self.presence_map, doc_id) * get_body_prox_score(self.presence_map, doc_id)
+        score = 0.25 * get_bm25_score(self.presence_map, doc_id) * get_body_prox_score(self.presence_map, doc_id)
         score += 0.45 * get_title_score(self.presence_map, doc_id) * get_title_prox_score(self.presence_map, doc_id)
-        score += 0.4 * get_semantic_score(self.query, doc_id)
+        score += 0.3 * get_semantic_score(self.query, doc_id)
 
         return score
 
@@ -68,11 +70,7 @@ class ResultGeneration:
         return [(docID,urlDict.get(docID)) for docID in sorted_doc_id_list]
 
     def _rank_documents(self, doc_id_list: set):
-        scores = {}
-
-        for doc_id in doc_id_list:
-            scores[doc_id] = self._get_total_doc_score(doc_id)
-
+        scores = {doc_id : self._get_total_doc_score(doc_id) for doc_id in doc_id_list}
         sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
 
         return [score[0] for score in sorted_scores]
