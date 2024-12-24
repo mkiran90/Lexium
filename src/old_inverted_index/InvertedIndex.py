@@ -2,7 +2,7 @@ import math
 import os
 import pickle
 
-from code.util.singleton import singleton
+from src.util.singleton import singleton
 @singleton
 class InvertedIndex:
 

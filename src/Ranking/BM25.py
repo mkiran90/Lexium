@@ -1,8 +1,8 @@
 
 import math
 
-from code.document.DocumentMetadata import DocumentMetadata
-from code.forward_index.ForwardIndex import ForwardIndex
+from src.document.DocumentMetadata import DocumentMetadata
+from src.forward_index.ForwardIndex import ForwardIndex
 
 # TODO: calculate IDF once at the start
 

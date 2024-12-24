@@ -2,9 +2,9 @@ import io
 import os
 import struct
 
-from code.util.singleton import singleton
-from code.inverted_index.Barrel import Barrel, BarrelFullException
-from code.inverted_index.WordPresence import WordPresence
+from src.util.singleton import singleton
+from src.inverted_index.Barrel import Barrel, BarrelFullException
+from src.inverted_index.WordPresence import WordPresence
 
 
 @singleton
@@ -29,7 +29,7 @@ class InvertedIndex:
 
     def _init_index_file(self):
 
-        from code.lexicon_gen.Lexicon import Lexicon
+        from src.lexicon_gen.Lexicon import Lexicon
         with open(self._BARREL_INDEX_FILE_PATH, "wb") as f:
             f.write(struct.pack("I", 1))  # first 4 bytes tell CURRENT_BARREL_NUM
             lexicon = Lexicon()

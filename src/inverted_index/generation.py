@@ -1,9 +1,9 @@
 import pickle
 
-from code.forward_index.ForwardIndex import ForwardIndex
-from code.inverted_index.InvertedIndex import InvertedIndex
-from code.lexicon_gen.Lexicon import Lexicon
-from code.inverted_index.WordPresence import WordPresence,WordInDoc
+from src.forward_index.ForwardIndex import ForwardIndex
+from src.inverted_index.InvertedIndex import InvertedIndex
+from src.lexicon_gen.Lexicon import Lexicon
+from src.inverted_index.WordPresence import WordPresence,WordInDoc
 fwd_index = ForwardIndex()
 inv_index = InvertedIndex()
 lexicon = Lexicon()

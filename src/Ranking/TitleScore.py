@@ -1,5 +1,5 @@
 
-from code.forward_index.ForwardIndex import ForwardIndex
+from src.forward_index.ForwardIndex import ForwardIndex
 
 forward_index = ForwardIndex()
 

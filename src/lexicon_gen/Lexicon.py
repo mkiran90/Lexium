@@ -1,7 +1,7 @@
 import os
 import string
 import pickle
-from code.util.singleton import singleton
+from src.util.singleton import singleton
 
 
 #LEXICON NEEDS TO BE CLOSED/SAVED EXPLICITY WHENEVER MODIFIED

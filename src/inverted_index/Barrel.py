@@ -3,7 +3,7 @@ import os
 import struct
 import tempfile
 
-from code.inverted_index.WordPresence import WordPresence
+from src.inverted_index.WordPresence import WordPresence
 
 class BarrelFullException(Exception):
     pass

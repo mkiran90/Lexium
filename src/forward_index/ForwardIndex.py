@@ -1,7 +1,7 @@
 import struct
 import os
 
-from code.util.singleton import singleton
+from src.util.singleton import singleton
 import random
 '''
 Structure of Forward Index Data File
@@ -51,7 +51,7 @@ class ForwardIndex:
             return struct.unpack("I", offset_file.read(4))[0]
 
     def get(self, docID: int):
-        from code.document.Document import Document
+        from src.document.Document import Document
 
         offset: int = self._get_offset(docID)
 
@@ -66,7 +66,7 @@ class ForwardIndex:
             return Document.decode(docbytes)
 
     def get_document_lite(self, docID: int):
-        from code.document.DocumentLite import DocumentLite
+        from src.document.DocumentLite import DocumentLite
 
         offset: int = self._get_offset(docID)
 

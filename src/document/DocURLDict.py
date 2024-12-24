@@ -1,7 +1,7 @@
 import os.path
 import struct
 
-from code.util.singleton import singleton
+from src.util.singleton import singleton
 
 @singleton
 class DocURLDict:

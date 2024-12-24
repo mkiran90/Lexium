@@ -1,10 +1,10 @@
 import csv
 import time
 
-from code.forward_index.ForwardIndex import ForwardIndex
-from code.lexicon_gen.Lexicon import Lexicon
+from src.forward_index.ForwardIndex import ForwardIndex
+from src.lexicon_gen.Lexicon import Lexicon
 
-from code.document.DocURLDict import DocURLDict
+from src.document.DocURLDict import DocURLDict
 
 index = ForwardIndex()
 lexicon = Lexicon()
@@ -23,7 +23,7 @@ def get_position_map(body_words: list[int]):
 
 # converts row to a document, while storing all new words inside the document into the lexicon
 def row_to_document(row):
-    from code.document.Document import Document, DocumentBodyWord
+    from src.document.Document import Document, DocumentBodyWord
 
     title_wordIDs = [lexicon.get_or_assign(word) for word in row["title"].split()]
     tag_wordIDs = [lexicon.get_or_assign(word) for word in row["tags"].split()]

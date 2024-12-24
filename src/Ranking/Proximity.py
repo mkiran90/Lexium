@@ -61,6 +61,8 @@ def _get_query_pairs(query_terms: list):
     return list(combinations(query_terms, 2))
 
 def get_title_prox_score(presenceMap, docID: int):
+    if len(presenceMap) == 1:
+        return  1
     score = 1
     pairs = _get_query_pairs(presenceMap.keys())
 
@@ -82,6 +84,9 @@ def get_title_prox_score(presenceMap, docID: int):
 
 
 def get_body_prox_score(presenceMap, docID: int):
+    if len(presenceMap) == 1:
+        return  1
+
     score = 1
     pairs: list = _get_query_pairs(presenceMap.keys())
 
@@ -116,9 +121,3 @@ def _calculate_proximity(t1_positions, t2_positions):
 
     return proximity_sum / len(position_pairs)
 
-
-if __name__ == "__main__":
-    list1 = [3, 8, 12, 17, 23, 29, 34, 42]
-    list2 = [2, 5, 10, 14, 20, 25, 31]
-
-    print(_get_position_pairs(list1, list2))

@@ -1,7 +1,7 @@
-from code.forward_index.ForwardIndex import ForwardIndex
+from src.forward_index.ForwardIndex import ForwardIndex
 from InvertedIndex import InvertedIndex
-from code.lexicon_gen.Lexicon import Lexicon
-from code.document.DocURLDict import DocURLDict
+from src.lexicon_gen.Lexicon import Lexicon
+from src.document.DocURLDict import DocURLDict
 
 fwd_index = ForwardIndex()
 inv_index = InvertedIndex()
