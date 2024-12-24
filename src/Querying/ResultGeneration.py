@@ -1,29 +1,34 @@
 import numpy as np
 
-from src.Ranking.BM25 import get_bm25_score,_idf
-from src.Ranking.Proximity import get_body_prox_score, get_title_prox_score
-from src.Ranking.Semantic import get_semantic_score
-from src.Ranking.TitleScore import get_title_score
+from src.ranking.BM25 import get_bm25_score,_idf
+from src.ranking.Proximity import get_body_prox_score, get_title_prox_score
+from src.ranking.Semantic import get_semantic_score
+from src.ranking.TitleScore import get_title_score
 from src.document.MetaIndex import MetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.inverted_index.InvertedIndex import InvertedIndex
 from src.lexicon_gen.Lexicon import Lexicon
 from src.document.DocURLDict import DocURLDict
 from src.lexicon_gen.WordEmbedding import WordEmbedding
-from src.preprocessing import data_cleaning
+from src.preprocessing.data_cleaning import clean_title
+from src.util.util_functions import get_nlp
 
+
+# THESE SHOULD BE LOADED AS APP STARTS UP, OR AS SERVER STARTS
+nlp = get_nlp()
 inverted_index = InvertedIndex()
 forward_index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
 meta_index = MetaIndex()
 word_embedding = WordEmbedding()
+
 class ResultGeneration:
 
     def __init__(self, query):
-        self.query = data_cleaning.clean_title(query)
-        self.query = self.query.split()
-        self.query_word_ids = set([lexicon.get(word) for word in self.query if lexicon.get(word) is not None])
+        self.query = query
+        self.clean_query_words = clean_title(query, nlp,for_csv=False)
+        self.query_word_ids = set([lexicon.get(word) for word in self.clean_query_words if lexicon.get(word) is not None])
         self.query_meaning = self.get_query_meaning()
         self.presence_map = self._generate_presence_map()
         self.idf_map = self._generate_idf_map()
@@ -75,7 +80,7 @@ class ResultGeneration:
         title = title_freq * title_prox
         semantic = get_semantic_score(self.query_meaning, doc_meta=doc_meta)
 
-        return 0.3*body + 0.4*title + 0.3*semantic
+        return 0.2*body + 0.6*title + 0.2*semantic
 
     def get_search_results(self):
         relevant_doc_ids = self._relevant_docs()
