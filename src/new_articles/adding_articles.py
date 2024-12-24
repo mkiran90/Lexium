@@ -1,12 +1,12 @@
 import time
-
+import traceback
 import numpy as np
 from newspaper import Article
 
 from src.inverted_index.InvertedIndex import InvertedIndex
 from src.preprocessing.data_cleaning import clean_body, clean_title, clean_tags
 from src.lexicon_gen.Lexicon import Lexicon
-from src.util.util_functions import get_position_map,get_word2vec, get_word_vector
+from src.util.util_functions import get_position_map,get_word2vec, get_word_vector, get_nlp
 from src.document.Document import Document, DocumentBodyWord
 from src.document.DocURLDict import DocURLDict
 from src.forward_index.ForwardIndex import ForwardIndex
@@ -21,6 +21,8 @@ url_dict = DocURLDict()
 model = get_word2vec()
 word_embedding = WordEmbedding()
 meta = MetaIndex()
+nlp = get_nlp()
+
 
 def valid_title(title:str):
     return len(title.strip()) > 0 and len(title.split()) > 1
@@ -98,9 +100,9 @@ def handle_words(cleaned_title, cleaned_tags, cleaned_text):
     return title_wordIDs, tag_wordIDs, body_wordIDs, body_meaning
 
 def _generate_structures(title, tags, body):
-    cleaned_title:list = clean_title(title, for_csv=False)
+    cleaned_title:list = clean_title(title, nlp, for_csv=False)
     cleaned_tags:list = clean_tags(tags, for_csv=False)
-    cleaned_text:list = clean_body(body, for_csv=False)
+    cleaned_text:list = clean_body(body,  nlp, for_csv=False)
 
     # LEXICON AND WORD-EMBEDDING UPDATES
     title_wordIDs, tag_wordIDs, body_wordIDs, body_meaning = handle_words(cleaned_title,cleaned_tags,cleaned_text)
@@ -137,29 +139,28 @@ def add_article(url:str):
 
     # ensure integrity
     assert assigned_docID_1 == assigned_docID_2, "Disparity between fwd index and urldict docID"
-    docID = assigned_docID_1
 
     print("Updated Forward index and docurldict", time.time() - A)
 
     A = time.time()
     # METADATA UPDATE
     assigned_docID = meta.add_doc_metadata(len(doc.title_words), doc.doc_length(), body_meaning)
-    assert docID==assigned_docID, "Disparity between metadata assigned docID and actual docID"
+    assert assigned_docID_1==assigned_docID, "Disparity between metadata assigned docID and actual docID"
 
     print("Updated metadata", time.time() - A)
 
     A = time.time()
     # INVERTED INDEX UPDATE
-    for (wordID, wordInDoc) in wordInDoc_map.items():
-        inv_index.add(wordID, docID, wordInDoc)
+    inv_index.index_document(assigned_docID, doc_wordInDocs=wordInDoc_map)
     print("Updated Inverted Index", time.time() - A)
 
 if __name__ == "__main__":
     try:
-        url = "https://medium.com/@profgalloway/killing-the-cat-98be9a3ae094"
+        url = "https://medium.com/@eshanuk12/how-to-make-150-a-day-playing-angry-birds-on-mobile-18963359e5cd"
         add_article(url)
     except Exception as e:
         print(e)
         print("Article not Indexed")
+        traceback.print_exc()
 
 lexicon.save_lexicon()

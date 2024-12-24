@@ -10,7 +10,8 @@ class BarrelFullException(Exception):
     pass
 
 class Barrel:
-    _BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
+    #_BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
+    _BARREL_CAPACITY = 458_419_695
     _PARENT_PATH = "../../res/inverted_index/barrels/"
 
     def __init__(self, barrel_num):
@@ -41,6 +42,10 @@ class Barrel:
 
     def _get_offset(self, in_barrel_pos):
         with open(self.OFFSET_FILE_PATH, "rb") as f:
+            f.seek(4*in_barrel_pos)
+            return struct.unpack('I', f.read(4))[0]
+
+    def _get_offset_with_file(self, f, in_barrel_pos):
             f.seek(4*in_barrel_pos)
             return struct.unpack('I', f.read(4))[0]
 
@@ -78,7 +83,8 @@ class Barrel:
         # Replace the original file content
         f.seek(0)  # Reset file descriptor to the beginning
         with open(temp_file_path, 'rb') as temp_file:
-            f.write(temp_file.read())
+            while chunk := temp_file.read(chunk_size):
+                f.write(chunk)
 
         # Truncate the file in case it becomes shorter
         f.truncate()
@@ -168,9 +174,10 @@ class Barrel:
             offsets.seek(0, io.SEEK_END)
 
             # free space in the barrel before start of truncation.
-            space_created = self._BARREL_CAPACITY - data.tell()
+            free_space = self._BARREL_CAPACITY - data.tell()
+            space_created = 0
             end_pos = data.tell()
-            while space_created < required_byte_space:
+            while space_created + free_space < required_byte_space:
 
                   # read the offset
                   offsets.seek(-4, io.SEEK_CUR)
@@ -187,12 +194,78 @@ class Barrel:
 
 
             offsets.truncate(offsets.tell())
-            data.seek(-space_created,io.SEEK_END)
+            data.seek(-1 * space_created,io.SEEK_END)
             data.truncate(data.tell())
 
             return popped_words
 
-    def batch_update(self, barrel_updates):
+    def batch_update_offsets(self, barrel_pos_map, barrel_updates):
+        with open(self.OFFSET_FILE_PATH, "r+b") as f:
+
+             num_bytes = 0
+
+             # wordIDs should be sorted by in_barrel_pos
+             wordIDs = list(barrel_pos_map.keys())
+             for (i,wordID) in enumerate(wordIDs):
+                 num_bytes += len(barrel_updates[wordID])
+                 start_pos = 4*barrel_pos_map[wordID] + 4 # start from byte AFTER current in_barrel_pos, since a wordID's offset wont change by addition to its own presence
+                 f.seek(start_pos)
+
+                 if i!=len(barrel_pos_map)-1:
+                     end_pos = 4*barrel_pos_map[wordIDs[i+1]] + 4
+                     offset_bytes = f.read(end_pos - start_pos)
+                 else:
+                     offset_bytes = f.read()
+
+                 f.seek(start_pos) #come back to write again
+
+                 n = len(offset_bytes)//4
+                 new_offsets = [(x + num_bytes) for x in struct.unpack(f"{n}I", offset_bytes)]
+                 f.write(struct.pack(f"{n}I", *new_offsets))
+
+
+
+    def batch_update(self, barrel_pos_map, barrel_updates):
+
+        chunk_size = 256*1024 # 256 KBs
+
         space_required = sum(len(x) for x in barrel_updates.values())
+
+        # technically should never have to raise
         if not self.has_space(space_required):
             raise BarrelFullException
+
+        with open(self.OFFSET_FILE_PATH, "rb") as offset_file:
+            offset_map = {wordID : self._get_offset_with_file(offset_file , pos) for (wordID,pos) in barrel_pos_map.items()}
+
+        with open(self.DATA_FILE_PATH, "r+b") as data, tempfile.NamedTemporaryFile(delete=False) as temp:
+
+            temp_file_path = temp.name
+            data.seek(0)
+
+            for wordID in offset_map:
+                offset = offset_map[wordID]
+                new_bytes = barrel_updates[wordID]
+                while data.tell() < offset:
+                      temp.write(data.read(min(offset - data.tell(), chunk_size)))
+                temp.write(data.read(4)) # skip wordID bytes
+                num_bytes = struct.unpack("I",data.read(4))[0]
+                temp.write(struct.pack("I", num_bytes + len(new_bytes)))
+                num_docInWords = struct.unpack("I", data.read(4))[0]
+                temp.write(struct.pack("I", num_docInWords + 1))
+                temp.write(new_bytes)
+
+            # copy remaining data
+            while chunk:=data.read(chunk_size):
+                  temp.write(chunk)
+
+            # Replace the original file content
+            data.seek(0)  # Reset file descriptor to the beginning
+            temp.seek(0)
+            while chunk := temp.read(chunk_size):
+                data.write(chunk)
+
+        # Clean up the temporary file
+        os.remove(temp_file_path)
+
+        self.batch_update_offsets(barrel_pos_map, barrel_updates)

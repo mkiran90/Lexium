@@ -11,7 +11,7 @@ from src.inverted_index.WordPresence import WordPresence, WordInDoc
 # SHOULD DO: WORDINDOC should probably have the docID field, its better practice than whatever this is
 
 class InvertedIndexUpdate:
-    def __init___(self):
+    def __init__(self):
         # -1 represents that its not associated with a specific document
         self.docID = -1
         self.old = {}
@@ -25,7 +25,7 @@ class InvertedIndexUpdate:
 
         for (barrel_num, barrel_updates) in self.old.items():
             self.old[barrel_num] = dict(
-                sorted(barrel_updates.items(), key=lambda item: inv_index._get_position(item[0])[1], reverse=True))
+                sorted(barrel_updates.items(), key=lambda item: inv_index._get_position(item[0])[1]))
 
     def to_bytes(self):
 
@@ -36,7 +36,7 @@ class InvertedIndexUpdate:
 
         for barrel_updates in self.old.values():
             for (wordID, wordInDoc) in barrel_updates.items():
-                barrel_updates[wordID] = struct.pack("I", docID) + wordInDoc.encode()
+                barrel_updates[wordID] = struct.pack("I", self.docID) + wordInDoc.encode()
 
 
 @singleton
@@ -180,22 +180,44 @@ class InvertedIndex:
         else:
             self._register_word(struct.unpack("I", word_presence[0:4])[0], barrel_num, in_barrel_pos)
 
-    # INITIAL POPULATE INVERTED INDEX
+
+    def _get_position_from_file(self, f,wordID):
+
+        offset = 4 + wordID * 5
+
+
+        f.seek(0, 2) # seek end
+
+        # doesn't yet exist, needs to be added first
+        if offset >= f.tell():
+            return -1, -1
+
+        f.seek(offset)
+        barrel_num = struct.unpack("H", f.read(2))[0]
+        in_barrel_pos = int.from_bytes(f.read(3), 'big')
+        return barrel_num, in_barrel_pos
+
+
+
+
+    # INITIAL POPULATE INVERTED INDEX UPDATE
     def populate_index_update(self, index_update, doc_wordInDocs):
-        for (wordID, wordInDoc) in doc_wordInDocs.items():
-            barrel_num, in_barrel_pos = self._get_position(wordID)
 
-            if barrel_num >= 1:
+        with open(self._BARREL_INDEX_FILE_PATH, "rb") as f:
+            for (wordID, wordInDoc) in doc_wordInDocs.items():
+                barrel_num, in_barrel_pos = self._get_position_from_file(f,wordID)
 
-                if index_update.old.get(barrel_num) is None:
-                    index_update.old[barrel_num] = {}
+                if barrel_num >= 1:
 
-                index_update.old[barrel_num][wordID] = wordInDoc
+                    if index_update.old.get(barrel_num) is None:
+                        index_update.old[barrel_num] = {}
 
-            else:
-                presence = WordPresence(wordID)
-                presence.add_doc(docID, wordInDoc)
-                index_update.new.append(presence)
+                    index_update.old[barrel_num][wordID] = wordInDoc
+
+                else:
+                    presence = WordPresence(wordID)
+                    presence.add_doc(index_update.docID, wordInDoc)
+                    index_update.new.append(presence)
 
 
     def accomodate_barrel_for_update(self, barrel_num, barrel_updates):
@@ -234,16 +256,18 @@ class InvertedIndex:
             i += 1
 
         return popped_presences, j
+
     def accomodate_for_update(self, index_update:InvertedIndexUpdate):
 
         popped_presences = []
 
         for (barrel_num, barrel_updates) in index_update.old.items():
             presences, valid_update_boundary = self.accomodate_barrel_for_update(barrel_num, barrel_updates)
-            index_update.old[barrel_num] = barrel_updates[:valid_update_boundary]
+            index_update.old[barrel_num] = dict(list(barrel_updates.items())[:valid_update_boundary])
             popped_presences.extend(presences)
 
         return popped_presences
+
     def index_document(self, docID, doc_wordInDocs: dict[int, WordInDoc]):
 
         index_update = InvertedIndexUpdate()
@@ -258,23 +282,13 @@ class InvertedIndex:
         # all the respective updates, otherwise they have been
 
         for (barrel_num, barrel_updates) in index_update.old.items():
+
             barrel = Barrel(barrel_num)
 
+            barrel_pos_map = {wordID: self._get_position(wordID)[1] for wordID in barrel_updates}
+
             # should be guaranteed that the barrel has space for all barrel_updates
-            barrel.batch_update(barrel_updates)
+            barrel.batch_update(barrel_pos_map, barrel_updates)
 
-
-
-
-
-if __name__ == "__main__":
-    from WordPresence import WordInDoc
-
-    inv_index = InvertedIndex()
-    docID = 10000
-    wordID = 0
-    wordInDoc = WordInDoc([1] * 5, [1] * 2)
-    A = time.time()
-    for i in range(1):
-        inv_index.add(wordID, docID, wordInDoc)
-    print(time.time() - A)
+        for presence in index_update.new:
+            self.index_new_word(presence, test_novelty=False, from_bytes=True)
