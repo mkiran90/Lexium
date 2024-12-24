@@ -6,7 +6,7 @@ def get_title_score(presence_map, doc_id, doc_meta):
     for (word_id, presence) in presence_map.items():
         words_in_title += presence.docMap[doc_id].title_frequency()
 
-    total_title_words = doc_meta[0]
+    total_title_words = doc_meta.title_length
 
     if total_title_words == 0:
         return 0

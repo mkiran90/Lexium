@@ -4,7 +4,7 @@ from src.Ranking.BM25 import get_bm25_score,_idf
 from src.Ranking.Proximity import get_body_prox_score, get_title_prox_score
 from src.Ranking.Semantic import get_semantic_score
 from src.Ranking.TitleScore import get_title_score
-from src.document.DocumentMetadata import DocumentMetadata
+from src.document.MetaIndex import MetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.inverted_index.InvertedIndex import InvertedIndex
 from src.lexicon_gen.Lexicon import Lexicon
@@ -16,7 +16,7 @@ inverted_index = InvertedIndex()
 forward_index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
-document_metadata = DocumentMetadata()
+meta_index = MetaIndex()
 word_embedding = WordEmbedding()
 class ResultGeneration:
 
@@ -24,7 +24,7 @@ class ResultGeneration:
         self.query = data_cleaning.clean_title(query)
         self.query = self.query.split()
         self.query_word_ids = set([lexicon.get(word) for word in self.query if lexicon.get(word) is not None])
-        self.query_embedding = self.get_query_embedding()
+        self.query_meaning = self.get_query_meaning()
         self.presence_map = self._generate_presence_map()
         self.idf_map = self._generate_idf_map()
 
@@ -48,7 +48,7 @@ class ResultGeneration:
         return idf_map
 
     def _generate_docmeta_map(self, doc_list):
-        return document_metadata.batch_load(doc_list)
+        return meta_index.batch_load(doc_list)
 
     def _relevant_docs(self):
 
@@ -73,7 +73,7 @@ class ResultGeneration:
         title_freq = get_title_score(self.presence_map, doc_id, doc_meta=doc_meta)
         title_prox = get_title_prox_score(self.presence_map, doc_id)
         title = title_freq * title_prox
-        semantic = get_semantic_score(self.query_embedding, doc_meta=doc_meta)
+        semantic = get_semantic_score(self.query_meaning, doc_meta=doc_meta)
 
         return 0.3*body + 0.4*title + 0.3*semantic
 
@@ -89,7 +89,7 @@ class ResultGeneration:
 
         return [score[0] for score in sorted_scores]
 
-    def get_query_embedding(self):
+    def get_query_meaning(self):
         vec_sum = np.zeros(shape=(300,))
 
         if len(self.query_word_ids) == 0:

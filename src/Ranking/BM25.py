@@ -1,7 +1,7 @@
 
 import math
 
-from src.document.DocumentMetadata import DocumentMetadata
+from src.document.MetaIndex import MetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 
 '''
@@ -26,11 +26,11 @@ Method of retrieval:
 '''
 
 # open and close
-document_metadata = DocumentMetadata()
+meta_index = MetaIndex()
 forward_index = ForwardIndex()
 doc_count = forward_index.size()
-avg_doc_length = document_metadata.total_word_count() / doc_count
-del document_metadata, forward_index
+avg_doc_length = meta_index.total_word_count() / doc_count
+del meta_index, forward_index
 
 k1 = 1.2
 b = 0.75
@@ -48,7 +48,7 @@ def _term_bm25(presence, term_idf, docID, doc_len):
 def get_bm25_score(presenceMap, idf_map, docID, doc_meta):
     # Calculate BM25 score for a document for a given query (now works with wordID directly)
     score = 0
-    doc_len = doc_meta[1]
+    doc_len = doc_meta.body_length
 
     for (wordID, presence) in presenceMap.items():
        term_score = _term_bm25(presence, idf_map[wordID], docID, doc_len)

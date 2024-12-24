@@ -15,11 +15,6 @@ def cosine_similarity(a, b):
         return 0.0  # Handle zero vectors
     return dot_product / (norm_a * norm_b)
 
-def get_semantic_score(query_embedding, doc_meta):
+def get_semantic_score(query_meaning, doc_meta):
 
-
-    doc_embedding = doc_meta[2]
-
-    score = cosine_similarity(query_embedding, doc_embedding)
-
-    return score
+    return cosine_similarity(query_meaning, doc_meta.meaning)

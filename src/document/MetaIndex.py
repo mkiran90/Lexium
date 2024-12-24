@@ -16,8 +16,16 @@ body_len -> uint16
 word_embedding -> 1200 bytes
 """
 
+class DocumentMeta:
+    def __init__(self, title_length, body_length, meaning):
+        self.meaning = meaning
+        self.body_length = body_length
+        self.title_length = title_length
+
+
+
 @singleton
-class DocumentMetadata:
+class MetaIndex:
     _METADATA_FILE_PATH = "../../res/doc_metadata/metadata_file.bin"
 
     def __init__(self):
@@ -131,15 +139,15 @@ class DocumentMetadata:
             for docID in doc_list:
                 f.seek(self._get_offset(docID))
                 doc_bytes = f.read(1203)
-                doc_map[docID] = (struct.unpack("B", doc_bytes[0:1])[0], struct.unpack("H", doc_bytes[1:3])[0], np.frombuffer(doc_bytes[3:], dtype=np.float32))
+                doc_map[docID] = DocumentMeta(title_length=struct.unpack("B", doc_bytes[0:1])[0], body_length=struct.unpack("H", doc_bytes[1:3])[0], meaning=np.frombuffer(doc_bytes[3:], dtype=np.float32))
 
         return doc_map
 
 
 if __name__ == "__main__":
 
-    meta = DocumentMetadata()
-    doc_list = list(range(1000))
+    meta = MetaIndex()
+    doc_list = list(range(100000))
     A = time.time()
     meta.batch_load(doc_list)
     print(time.time() - A)
