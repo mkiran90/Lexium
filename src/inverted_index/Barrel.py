@@ -10,8 +10,7 @@ class BarrelFullException(Exception):
     pass
 
 class Barrel:
-    #_BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
-    _BARREL_CAPACITY = 458_419_695
+    _BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
     _PARENT_PATH = "../../res/inverted_index/barrels/"
 
     def __init__(self, barrel_num):
