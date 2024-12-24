@@ -15,22 +15,10 @@ def cosine_similarity(a, b):
         return 0.0  # Handle zero vectors
     return dot_product / (norm_a * norm_b)
 
-def get_semantic_score(query_word_ids, doc_id, word_embedding, document_metadata):
+def get_semantic_score(query_embedding, doc_meta):
 
-    vec_sum = np.zeros(shape=(300,))
 
-    if len(query_word_ids) == 0:
-        query_embedding = vec_sum
-    else:
-        for word_id in query_word_ids:
-            vec = word_embedding.get_word_embedding(word_id)
-
-            if vec is not None:
-                vec_sum += vec
-
-        query_embedding = (vec_sum / len(query_word_ids)).astype(np.float32)
-
-    doc_embedding = document_metadata.get_doc_embedding(doc_id)
+    doc_embedding = doc_meta[2]
 
     score = cosine_similarity(query_embedding, doc_embedding)
 

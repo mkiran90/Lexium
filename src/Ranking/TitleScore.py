@@ -1,16 +1,12 @@
 
-from src.forward_index.ForwardIndex import ForwardIndex
-
-forward_index = ForwardIndex()
-
-def get_title_score(presence_map, doc_id):
+def get_title_score(presence_map, doc_id, doc_meta):
 
     words_in_title = 0
 
     for (word_id, presence) in presence_map.items():
         words_in_title += presence.docMap[doc_id].title_frequency()
 
-    total_title_words = len(forward_index.get(doc_id).title_words)
+    total_title_words = doc_meta[0]
 
     if total_title_words == 0:
         return 0

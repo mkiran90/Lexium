@@ -1,4 +1,4 @@
-import time
+import numpy as np
 
 from src.Ranking.BM25 import get_bm25_score,_idf
 from src.Ranking.Proximity import get_body_prox_score, get_title_prox_score
@@ -24,6 +24,7 @@ class ResultGeneration:
         self.query = data_cleaning.clean_title(query)
         self.query = self.query.split()
         self.query_word_ids = set([lexicon.get(word) for word in self.query if lexicon.get(word) is not None])
+        self.query_embedding = self.get_query_embedding()
         self.presence_map = self._generate_presence_map()
         self.idf_map = self._generate_idf_map()
 
@@ -46,6 +47,8 @@ class ResultGeneration:
 
         return idf_map
 
+    def _generate_docmeta_map(self, doc_list):
+        return document_metadata.batch_load(doc_list)
 
     def _relevant_docs(self):
 
@@ -61,21 +64,18 @@ class ResultGeneration:
             result_set = result_set & self.presence_map[wordID].docSet
         return result_set
 
-    def _get_total_doc_score(self, doc_id):
+    def _get_total_doc_score(self, doc_id, doc_meta):
 
-        # body_freq = get_bm25_score(self.presence_map, self.idf_map, doc_id, document_metadata)
-        # body_prox = get_body_prox_score(self.presence_map, doc_id)
-        # body = body_freq * body_prox
-        #
-        # title_freq = get_title_score(self.presence_map, doc_id)
-        # title_prox = get_title_prox_score(self.presence_map, doc_id)
-        # title = title_freq * title_prox
-        # semantic  = get_semantic_score(self.query_word_ids, doc_id, word_embedding, document_metadata)
-        #
-        # return 0.3*body + 0.4*title + 0.3*semantic
+        body_freq = get_bm25_score(self.presence_map, self.idf_map, doc_id, doc_meta=doc_meta)
+        body_prox = get_body_prox_score(self.presence_map, doc_id)
+        body = body_freq * body_prox
 
-        title_freq = get_title_score(self.presence_map, doc_id)
-        return 1
+        title_freq = get_title_score(self.presence_map, doc_id, doc_meta=doc_meta)
+        title_prox = get_title_prox_score(self.presence_map, doc_id)
+        title = title_freq * title_prox
+        semantic = get_semantic_score(self.query_embedding, doc_meta=doc_meta)
+
+        return 0.3*body + 0.4*title + 0.3*semantic
 
     def get_search_results(self):
         relevant_doc_ids = self._relevant_docs()
@@ -83,11 +83,25 @@ class ResultGeneration:
         return [(docID,urlDict.get(docID)) for docID in sorted_doc_id_list]
 
     def _rank_documents(self, doc_id_list: set):
-        A = time.time()
-        scores = {doc_id : self._get_total_doc_score(doc_id) for doc_id in doc_id_list}
-        print(time.time() - A)
+        docmeta_map = self._generate_docmeta_map(doc_id_list)
+        scores = {doc_id : self._get_total_doc_score(doc_id, docmeta_map[doc_id]) for doc_id in doc_id_list}
         sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
 
         return [score[0] for score in sorted_scores]
 
+    def get_query_embedding(self):
+        vec_sum = np.zeros(shape=(300,))
+
+        if len(self.query_word_ids) == 0:
+            query_embedding = vec_sum
+        else:
+            for word_id in self.query_word_ids:
+                vec = word_embedding.get_word_embedding(word_id)
+
+                if vec is not None:
+                    vec_sum += vec
+
+            query_embedding = (vec_sum / len(self.query_word_ids)).astype(np.float32)
+
+        return query_embedding
 

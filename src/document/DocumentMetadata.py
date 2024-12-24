@@ -1,5 +1,6 @@
 import os
 import struct
+import time
 
 import numpy as np
 from src.util.singleton import singleton
@@ -122,7 +123,25 @@ class DocumentMetadata:
 
         return (vec_sum / total).astype(np.float32)
 
+    def batch_load(self, doc_list):
+
+        doc_map = {}
+
+        with open(self._METADATA_FILE_PATH, "rb") as f:
+            for docID in doc_list:
+                f.seek(self._get_offset(docID))
+                doc_bytes = f.read(1203)
+                doc_map[docID] = (struct.unpack("B", doc_bytes[0:1])[0], struct.unpack("H", doc_bytes[1:3])[0], np.frombuffer(doc_bytes[3:], dtype=np.float32))
+
+        return doc_map
+
 
 if __name__ == "__main__":
-    pass
+
+    meta = DocumentMetadata()
+    doc_list = list(range(1000))
+    A = time.time()
+    meta.batch_load(doc_list)
+    print(time.time() - A)
+
 
