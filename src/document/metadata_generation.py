@@ -1,13 +1,12 @@
-from gensim.models import KeyedVectors
-
-from src.document.DocumentMetadata import MetaIndex
+from src.document.MetaIndex import MetaIndex
 from src.lexicon_gen.Lexicon import Lexicon
 from src.forward_index.ForwardIndex import ForwardIndex
+from src.util.util_functions import get_word2vec
 
 meta = MetaIndex()
 lexicon = Lexicon()
 inv_lexicon = list(lexicon._lexicon.keys())
-model = KeyedVectors.load_word2vec_format("../../res/GoogleNews-vectors-negative300.bin", binary=True)
+model = get_word2vec()
 fwd_index = ForwardIndex()
 
 

@@ -27,15 +27,15 @@ class Lexicon:
     def store_word(self, word: string):
         self._lexicon[word] = self.size()
 
-    #returns wordID if word is in lexicon, else store word and return the newly assigned wordID
+    # wordID, new (boolean)
     def get_or_assign(self, word: string):
         try:
-            return self._lexicon[word]
+            return self._lexicon[word], False
         except KeyError:
 
             wordID = self.size()
             self._lexicon[word] = wordID
-            return wordID
+            return wordID, True
 
     def get(self, word: string):
         return self._lexicon.get(word)

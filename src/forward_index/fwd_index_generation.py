@@ -9,26 +9,16 @@ from src.document.DocURLDict import DocURLDict
 index = ForwardIndex()
 lexicon = Lexicon()
 urlDict = DocURLDict()
-
-def get_position_map(body_words: list[int]):
-    position_map = {}
-    for i in range(len(body_words)):
-        word = body_words[i]
-        if position_map.get(word) is None:
-            position_map[word] = [i]
-        else:
-            position_map[word].append(i)
-
-    return position_map
+from src.util.util_functions import get_position_map
 
 # converts row to a document, while storing all new words inside the document into the lexicon
 def row_to_document(row):
     from src.document.Document import Document, DocumentBodyWord
 
-    title_wordIDs = [lexicon.get_or_assign(word) for word in row["title"].split()]
-    tag_wordIDs = [lexicon.get_or_assign(word) for word in row["tags"].split()]
+    title_wordIDs = [lexicon.get_or_assign(word)[0] for word in row["title"].split()]
+    tag_wordIDs = [lexicon.get_or_assign(word)[0] for word in row["tags"].split()]
 
-    body_wordIDs = [lexicon.get_or_assign(word) for word in row["text"].split()]
+    body_wordIDs = [lexicon.get_or_assign(word)[0] for word in row["text"].split()]
 
 
     position_map = get_position_map(body_wordIDs)

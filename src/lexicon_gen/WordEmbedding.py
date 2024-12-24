@@ -1,22 +1,38 @@
 import os
-import numpy as np
+import struct
 
+import numpy as np
 
 class WordEmbedding:
 
     _EMBEDDINGS_FILE_PATH = "../../res/lexicon/embeddings_file.bin"
+
 
     def __init__(self):
         if not os.path.isfile(self._EMBEDDINGS_FILE_PATH):
             with open(self._EMBEDDINGS_FILE_PATH, "wb") as embeddings_file:
                 pass
 
-    def add_word_embedding(self, word_embedding: np.ndarray):
+    def add_word_embedding(self, wordID,  word_embedding: np.ndarray):
 
-        with open(self._EMBEDDINGS_FILE_PATH, "a+b") as embeddings_file:
+        offset = 1200*wordID
+
+        with open(self._EMBEDDINGS_FILE_PATH, "r+b") as f:
+
+            # go to end
+            f.seek(0, 2)
+
+            end_pos = f.tell()
+
+            # fill in the gaps
+            if offset > end_pos:
+                f.write(struct.pack("B",0)*(offset - end_pos))
+
+            assert f.tell() == offset, "Disparity between wordID and corresponding offset"
+
+            f.write(word_embedding.tobytes())
 
 
-            embeddings_file.write(word_embedding.tobytes())
 
     def get_word_embedding(self, word_id: int):
         offset = 1200 * word_id

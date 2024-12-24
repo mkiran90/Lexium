@@ -1,24 +1,31 @@
-import spacy
-
-nlp = spacy.load("en_core_web_md")
-
 # string of cleaned tags, separated by spaces.
-def clean_tags(text):
+def clean_tags(text, for_csv = True):
 
-    # the string stored in the csv is the string representation of a list of tags
-    tag_list:list[str] = eval(text)
+    if for_csv:
+        # the string stored in the csv is the string representation of a list of tags
+        tag_list:list[str] = eval(text)
+    else:
+        # this is when the tags are coming from newspaper article.tags attribute, i.e a set of tags
+        tag_list:set = text
+
 
     clean_tags = [tag.lower() for tag in tag_list]
 
-    return " ".join(clean_tags)
+    if for_csv:
+        return " ".join(clean_tags)
+    else:
+        return clean_tags
 
 # string of cleaned title words, separated by spaces
-def clean_title(text):
+def clean_title(text, nlp, for_csv = True):
     doc = nlp(str(text))
 
     clean_tokens = [token.lemma_.lower() for token in doc if not token.is_punct and not token.is_stop]
 
-    return " ".join(clean_tokens)
+    if for_csv:
+        return " ".join(clean_tokens)
+    else:
+        return clean_tokens
 
 #overall validity (to let through or not)
 def is_valid(token):
@@ -62,12 +69,14 @@ def is_valid(token):
     return False
 
 # string of cleaned body words, separated by spaces
-def clean_body(text):
+def clean_body(text, nlp, for_csv= True):
     doc = nlp(str(text))
 
     clean_tokens = [token.lemma_.lower() for token in doc if is_valid(token)]
 
-    return " ".join(clean_tokens)
-
+    if for_csv:
+        return " ".join(clean_tokens)
+    else:
+        return clean_tokens
 
 

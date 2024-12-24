@@ -106,5 +106,4 @@ class Document:
               body_words.append(DocumentBodyWord(wordID, positions))
 
           return Document(title_words, tags, body_words)
-        
 

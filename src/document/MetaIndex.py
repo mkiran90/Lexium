@@ -4,7 +4,7 @@ import time
 
 import numpy as np
 from src.util.singleton import singleton
-
+from src.util.util_functions import body_meaning
 
 """
 The structure is:
@@ -101,35 +101,8 @@ class MetaIndex:
     def add_document(self, doc, model, inv_lexicon):
         title_len = len(doc.title_words)
         doc_len = doc.doc_length()
-        meaning_vec = self.body_meaning(doc.body_words, model, inv_lexicon)
+        meaning_vec = body_meaning(doc.body_words, model, inv_lexicon)
         return self.add_doc_metadata(title_len, doc_len, meaning_vec)
-
-    def get_word_vector(self, word, model):
-        """
-        Gets the word vector for a given word.
-        :param word: Input word.
-        :param model: Pre-trained word vector model.
-        :return: Word vector (list) or None if the word is not in the vocabulary.
-        """
-        if word in model.key_to_index:
-            return model[word]
-        else:
-            return None
-
-    def body_meaning(self, body_words, model, inv_lexicon):
-
-        total = 0
-        vec_sum = np.zeros(shape=(300,))
-        for word in body_words:
-            token = inv_lexicon[word.wordID]
-            vec = self.get_word_vector(token, model)
-            if vec is None:
-                continue
-            summed_vec = vec * word.frequency()
-            vec_sum += summed_vec
-            total += word.frequency()
-
-        return (vec_sum / total).astype(np.float32)
 
     def batch_load(self, doc_list):
 
