@@ -2,6 +2,7 @@ import io
 import os
 import struct
 import tempfile
+import time
 
 from src.inverted_index.WordPresence import WordPresence
 
@@ -115,8 +116,9 @@ class Barrel:
             f.seek(offset+4) # first 4 bytes are wordID, so skip
             num_bytes = struct.unpack("I", f.read(4))[0]
             num_docInWords = struct.unpack("I", f.read(4))[0]
+            A = time.time()
             self._insert(f, offset + 8 + num_bytes, encoded_bytes)
-
+            print("Insertion: ", time.time() - A)
             # update byte size of wordPresence
             f.seek(offset+4)
             f.write(struct.pack("I", num_bytes + len(encoded_bytes)))
@@ -127,7 +129,6 @@ class Barrel:
 
             self._increment_offsets(in_barrel_pos, len(encoded_bytes))
 
-    # this is only relevant when directly adding entire word presences when building inv index from fwd index
     # is is guaranteed by caller that the wordID is not indexed i.e in barrel index get_position(wordID) should return 0,0 / -1,-1
     # from_bytes should only be TRUE if word_presence represents ALL BYTES of the entry i.e |wordID|num_bytes|presence|
     def index_new_word(self, word_presence, from_bytes = False):
@@ -154,6 +155,7 @@ class Barrel:
         return int(in_barrel_pos)
 
     # good luck understanding this :)
+    # this ensures barrel has required byte space, if barrel already has free required byte space, it wont do anything
     def truncate(self, required_byte_space):
 
         # complete_encoded_bytes of wordPresences, whose word presences are getting popped
@@ -161,10 +163,13 @@ class Barrel:
         with open(self.DATA_FILE_PATH, "r+b") as data, open(self.OFFSET_FILE_PATH, "r+b") as offsets:
 
             data.seek(0, io.SEEK_END)
+
+
             offsets.seek(0, io.SEEK_END)
 
-            space_created = 0
-            end_pos = self.size_bytes()
+            # free space in the barrel before start of truncation.
+            space_created = self._BARREL_CAPACITY - data.tell()
+            end_pos = data.tell()
             while space_created < required_byte_space:
 
                   # read the offset
@@ -187,5 +192,7 @@ class Barrel:
 
             return popped_words
 
-
-
+    def batch_update(self, barrel_updates):
+        space_required = sum(len(x) for x in barrel_updates.values())
+        if not self.has_space(space_required):
+            raise BarrelFullException
