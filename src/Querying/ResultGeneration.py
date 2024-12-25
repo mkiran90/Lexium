@@ -1,4 +1,5 @@
 import numpy as np
+import Levenshtein
 
 from src.ranking.BM25 import get_bm25_score,_idf
 from src.ranking.Proximity import get_body_prox_score, get_title_prox_score
@@ -109,4 +110,33 @@ class ResultGeneration:
             query_embedding = (vec_sum / len(self.query_word_ids)).astype(np.float32)
 
         return query_embedding
+    
+    def _correct_query_words(self):
 
+        #getting the corrected query, will be as Did you mean "corrected_words"
+        corrected_words = []
+        
+        for word in self.query:
+        
+            word_id = lexicon.get(word)
+            
+            if word_id is None: 
+               
+                lexicon_words = [word for word in lexicon._lexicon]
+                closest_match = min(lexicon_words, key=lambda x: Levenshtein.distance(word, x))
+                corrected_words.append(closest_match)
+            else:
+                corrected_words.append(word)
+        
+        return corrected_words
+    
+    def get_search_docIDs(self):
+
+        # getting docIDs first
+        # helps in paging (then get the URLs according to the docID in the page ) 
+        relevant_doc_ids = self._relevant_docs()
+        sorted_doc_id_list = self._rank_documents(relevant_doc_ids)
+        return sorted_doc_id_list
+    
+    
+    
