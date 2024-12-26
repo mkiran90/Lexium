@@ -1,0 +1,148 @@
+:root {
+    --rad: .7rem;
+    --dur: .3s;
+    --color-dark: #2f2f2f;
+    --color-light: #fff;
+    --color-brand: #57bd84;
+    --font-fam: 'Lato', sans-serif;
+    --height: 5rem;
+    --btn-width: 6rem;
+    --bez: cubic-bezier(0, 0, 0.43, 1.49);
+  }
+  
+  h1 {
+    font-size: 70px; /* Fixed typo here */
+    text-align: center;
+  }
+  
+  body {
+
+    display: flex;
+    flex-direction: column; /* Ensures navbar is above the form */
+    align-items: center;
+    justify-content: flex-start; /* Align items at the start of the page */
+    min-height: 100vh;
+    margin: 0; /* Ensure no margin on body */
+   
+  }
+  
+  html {
+    box-sizing: border-box;
+    height: 100%;
+    font-size: 10px;
+  }
+  
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+  
+  nav {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #ffff;
+    width: 100%;
+    position: fixed; /* Fixed position so navbar stays at the top */
+    top: 0;
+    left: 0;
+    right: 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    z-index: 100; /* Make sure navbar is above other elements */
+  }
+  
+  .links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .icon {
+    font-size: 25px;
+    color: #5f5f66;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 15px;
+    border-radius: 20px;
+  }
+  
+  .icon:hover {
+    background: #dad9d9;
+    border-radius: 90%;
+  }
+  
+  .container {
+    margin-top: 100px; /* Add margin to avoid overlap with fixed navbar */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  form {
+    margin-top: 30px;
+    position: relative;
+    width: 70rem;
+    background: var(--color-brand);
+    border-radius: var(--rad);
+    margin-bottom: 100px;
+  }
+  
+  input,
+  button {
+    height: var(--height);
+    font-family: var(--font-fam);
+    border: 0;
+    width: 60%;
+    box-shadow: 3px 4px 8px rgba(0.1, 0.1, 0.1, 0.28);
+    color: var(--color-dark);
+    font-size: 1.8rem;
+  }
+  
+  input[type="search"] {
+    outline: 0;
+    width: 100%;
+    background: var(--color-light);
+    padding: 0 1.6rem;
+    border-radius: var(--rad);
+    appearance: none;
+    transition: all var(--dur) var(--bez);
+    transition-property: width, border-radius;
+    z-index: 1;
+    position: relative;
+  }
+  
+  button {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: var(--btn-width);
+    font-weight: bold;
+    background: var(--color-brand);
+    border-radius: 0 var(--rad) var(--rad) 0;
+  }
+  
+  input:not(:placeholder-shown) {
+    border-radius: var(--rad) 0 0 var(--rad);
+    width: calc(100% - var(--btn-width));
+  }
+  
+  input:not(:placeholder-shown) + button {
+    display: block;
+  }
+  
+  label {
+    position: absolute;
+    clip: rect(1px, 1px, 1px, 1px);
+    padding: 0;
+    border: 0;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+  }
+
+  .logo-search
+  {  font-size: 20px;}
+

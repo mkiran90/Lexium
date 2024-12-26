@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="../static/css/search_result.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="NavBar">
+        <div class="logo-search">
+            Lexium
+        </div>
+        <form id="searchForm" method="POST"> 
+        <div class="searchBar">
+            <input type="text" id="search" class="search" placeholder="Search" />
+        </div>
+    </form>
+        <div class="links">
+            <a href="/add_articles" id="addArticle" class="icon">
+                <i class="fas fa-plus"></i>
+            </a>
+            <a href="/" id="homeLink" class="icon">
+                <i class="fas fa-home"></i>
+            </a>
+        </div>
+    </nav>
+
+    <div class="results-container">
+        <h1>Results for "{{ query }}"</h1>
+        {% if typo_suggestion %}
+        <a href="{{ url_for('results', query=corrected_query) }}" class="typo-suggestion">
+            {{ typo_suggestion }}
+        </a>
+        {% endif %}
+        {% if results %}
+        <ul>
+            {% for result in results %}
+            <li>
+                <a href="{{ result.link }}" target="_blank">{{ result.title }}</a><br>
+                <strong>Tags:</strong> {{ result.tags }}<br>
+                <strong>Author:</strong> {{ result.author }}
+            </li>
+            {% endfor %}
+        </ul>
+    
+            <!-- Making the page stuff -->
+            <div class="pagination">
+                {% if current_page > 1 %}
+                    <a href="{{ url_for('results', query=query, page=current_page-1) }}" class="button">Previous</a>
+                {% endif %}
+        
+                {% for page_num in pagination_range %}
+                    {% if page_num == current_page %}
+                        <span class="button current-page">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('results', query=query, page=page_num) }}" class="button">{{ page_num }}</a>
+                    {% endif %}
+                {% endfor %}
+        
+                {% if current_page < total_pages %}
+                    <a href="{{ url_for('results', query=query, page=current_page+1) }}" class="button">Next</a>
+                {% endif %}
+            </div>
+    
+        {% endif %}
+    
+    </div>
+
+    <script src="../static/js/script.js"></script>
+    
+</body>
+</html>

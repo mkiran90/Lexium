@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Page</title>
+    <link rel="stylesheet" href="../static/css/noresult.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="NavBar">
+        <div class="logo-search">
+            Lexium
+        </div>
+        <form id="searchForm" method="POST">
+            <div class="searchBar">
+                <input type="text" id="search" class="search" placeholder="Search" />
+            </div>
+        </form>
+        <div class="links">
+            <a href="/add_articles" id="addArticle" class="icon">
+                <i class="fas fa-plus"></i>
+            </a>
+            <a href="/" id="homeLink" class="icon">
+                <i class="fas fa-home"></i>
+            </a>
+        </div>
+    </nav>
+    <div class="content">
+        <div class="image-container">
+            <div id="no_img"></div>
+            <div class="text-overlay">
+                <h4>No results found</h4>
+            </div>
+        </div>
+        <div class="circles">
+            <span class="circle big"></span>
+            <span class="circle med"></span>
+            <span class="circle small"></span>
+        </div>
+    </div>
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

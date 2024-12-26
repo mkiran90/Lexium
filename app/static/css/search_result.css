@@ -1,0 +1,154 @@
+
+.search-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+  }
+  
+  .search {
+    flex: 1;
+    margin: 0 10px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    outline: none;
+    width: 800px;
+  }
+  
+  body {
+    padding-top: 50px;
+    background-color:#e0f1e9 ;  
+    background-size: cover;
+    background-position: center;
+    height: 100%;
+    font-family: Arial, sans-serif; /* Optional for better visuals */
+}
+
+nav {
+    position: fixed; /* Keeps the navbar fixed at the top */
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #ffffff;
+    left: 0;
+    right: 0;
+    top: 0; /* Ensure it stays at the top */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    z-index: 1000; /* Ensure it stays above other elements */
+}
+
+.links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.icon {
+    font-size: 25px;
+    color: #5f5f66;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 15px;
+    border-radius: 20px;
+}
+
+.icon:hover {
+    background: #dad9d9;
+    border-radius: 90%;
+}
+
+.logo-search {
+    font-size: 20px;
+}
+
+.text-center
+{
+   padding-left: 40px;
+
+}
+
+
+ul {
+  
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    margin-bottom: 10px;
+}
+
+ul li a {
+    size: 25px;
+    color: #007bff;
+    text-decoration: none;
+}
+
+ul li a:hover {
+    text-decoration: underline;
+}
+
+
+.results-container {
+    padding-top: 140px;
+    margin-top: 20px; /* Adjust if overlapping persists */
+    background-color: #ffffff; /* Ensures the container is white */
+    padding: 50px;
+    border-radius: 10px; /* Keeps the rounded corners */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Darker and larger shadow */
+    margin: 20px auto; /* Centers the container */
+    width: 98%; /* Ensures responsiveness */
+    box-sizing: border-box; /* Includes padding and border in width calculation */
+}
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 5px; /* Space between buttons */
+}
+
+.button {
+    display: inline-block;
+    padding: 10px 15px;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid #57bd84;
+    border-radius: 5px;
+    color: #57bd84;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.button:hover {
+    background-color: #57bd84;
+    color: white;
+}
+
+.current-page {
+    background-color: #57bd84;
+    color: white;
+    font-weight: bold;
+    border: 1px solid #57bd84;
+    pointer-events: none; /* Disable click for the current page */
+}
+
+/* Typo Suggestion */
+.typo-suggestion {
+    display: inline-block;
+    margin-left: 19px;
+    margin-bottom: 10px;
+    font-size: 17px;
+    color: #0cb368;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.typo-suggestion:hover {
+    text-decoration: underline;
+}
