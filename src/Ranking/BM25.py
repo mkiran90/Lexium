@@ -40,7 +40,12 @@ def _idf(word_presence):
     return math.log( ((doc_count - doc_freq + 0.5) / (doc_freq + 0.5)) + 1.0)
 
 def _term_bm25(presence, term_idf, docID, doc_len):
-    f = presence.docMap[docID].body_frequency()
+    try:
+        f = presence.docMap[docID].body_frequency()
+
+    except KeyError:
+        return 0
+
     term_score = term_idf * ((f * (k1 + 1)) / (f + k1 * (1 - b + (b * (doc_len / avg_doc_length)))))
 
     return term_score

@@ -1,10 +1,12 @@
+from itertools import combinations
+
 import numpy as np
 import Levenshtein
 
-from src.ranking.BM25 import get_bm25_score,_idf
-from src.ranking.Proximity import get_body_prox_score, get_title_prox_score
-from src.ranking.Semantic import get_semantic_score
-from src.ranking.TitleScore import get_title_score
+from src.Ranking.BM25 import get_bm25_score,_idf
+from src.Ranking.Proximity import get_body_prox_score, get_title_prox_score
+from src.Ranking.Semantic import get_semantic_score
+from src.Ranking.TitleScore import get_title_score
 from src.document.MetaIndex import MetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.inverted_index.InvertedIndex import InvertedIndex
@@ -56,18 +58,42 @@ class ResultGeneration:
     def _generate_docmeta_map(self, doc_list):
         return meta_index.batch_load(doc_list)
 
+
     def _relevant_docs(self):
 
+        query_combinations = [self.query_word_ids]
+
+        if len(self.query_word_ids) > 1:
+            for comb in combinations(self.query_word_ids, len(self.query_word_ids) - 1):
+                query_combinations.append(set(comb))
+
+        if len(self.query_word_ids) > 2:
+            for comb in combinations(self.query_word_ids, len(self.query_word_ids) - 2):
+                query_combinations.append(set(comb))
+
+        print(query_combinations)
+
+        result_set = set()
+
+        for combination in query_combinations:
+            result_set.update(self._get_doc_intersection(combination))
+
+        print(len(result_set))
+
+        return result_set
+
+    def _get_doc_intersection(self, word_ids: set):
         # it is an empirical fact that a greater wordID has a smaller doclist
         # and intersection of sets is O(min(m,n)) where m and n is size of sets that are being intersected
         # starting with the smallest is the fastest way to go about this
 
-        max_wordID = max(self.query_word_ids)
+        max_wordID = max(word_ids)
         result_set = self.presence_map[max_wordID].docSet
-        for wordID in self.query_word_ids:
+        for wordID in word_ids:
             if wordID == max_wordID:
                 continue
             result_set = result_set & self.presence_map[wordID].docSet
+
         return result_set
 
     def _get_total_doc_score(self, doc_id, doc_meta):
@@ -81,9 +107,13 @@ class ResultGeneration:
         title = title_freq * title_prox
         semantic = get_semantic_score(self.query_meaning, doc_meta=doc_meta)
 
-        return 0.2*body + 0.6*title + 0.2*semantic
+        return 0.25*body + 0.65*title + 0.1*semantic
 
     def get_search_results(self):
+
+        if len(self.query_word_ids) == 0:
+            return []
+
         relevant_doc_ids = self._relevant_docs()
         sorted_doc_id_list = self._rank_documents(relevant_doc_ids)
         return [(docID,urlDict.get(docID)) for docID in sorted_doc_id_list]
