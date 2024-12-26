@@ -21,11 +21,4 @@ Adder = ArticleAddition(lexicon,fwd_index,inv_index,url_dict,model,word_embeddin
 
 url = ""
 Adder.add_article(url=url)
-
-
-
-
-
-
-
 lexicon.save_lexicon()
