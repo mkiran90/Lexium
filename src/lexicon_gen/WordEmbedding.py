@@ -5,7 +5,7 @@ import numpy as np
 
 class WordEmbedding:
 
-    _EMBEDDINGS_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/lexicon/embeddings_file.bin"
+    _EMBEDDINGS_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) +"/../../res/lexicon/embeddings_file.bin"
 
 
     def __init__(self):

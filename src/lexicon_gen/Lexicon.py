@@ -8,7 +8,7 @@ from src.util.singleton import singleton
 @singleton
 class Lexicon:
 
-    _LEXICON_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/lexicon/lexicon.pkl"
+    _LEXICON_PATH = os.path.dirname(os.path.abspath(__file__)) +"/../../res/lexicon/lexicon.pkl"
     _lexicon = {}
     def __init__(self):
         #sync in-memory lexicon up with in-storage lexicon
