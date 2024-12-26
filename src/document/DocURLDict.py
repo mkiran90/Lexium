@@ -5,8 +5,8 @@ from src.util.singleton import singleton
 
 @singleton
 class DocURLDict:
-    _DATA_FILE_PATH = "../../res/doc_url_dict/doc_url_dict_data.txt"
-    _OFFSET_FILE_PATH = "../../res/doc_url_dict/doc_url_dict_offset.bin"
+    _DATA_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "../../res/doc_url_dict/doc_url_dict_data.txt"
+    _OFFSET_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "../../res/doc_url_dict/doc_url_dict_offset.bin"
 
     def __init__(self):
         if not os.path.isfile(self._DATA_FILE_PATH):

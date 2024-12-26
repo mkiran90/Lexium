@@ -45,8 +45,8 @@ class InvertedIndex:
     BARREL_INDEX: first 4 bytes store the RUNNING_BARREL_NUM, then its an array of 5 bytes per wordID (2 bytes barrel_num + 3 bytes in_barrel_pos)
     '''
 
-    _BARREL_INDEX_FILE_PATH = "../../res/inverted_index/barrel_index.bin"
-    _BARREL_ROOT_PATH = "../../res/inverted_index/barrels/"
+    _BARREL_INDEX_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/inverted_index/barrel_index.bin"
+    _BARREL_ROOT_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/inverted_index/barrels/"
 
     def __init__(self):
 

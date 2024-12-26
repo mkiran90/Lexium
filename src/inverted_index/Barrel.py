@@ -11,7 +11,7 @@ class BarrelFullException(Exception):
 
 class Barrel:
     _BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
-    _PARENT_PATH = "../../res/inverted_index/barrels/"
+    _PARENT_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/inverted_index/barrels/"
 
     def __init__(self, barrel_num):
 

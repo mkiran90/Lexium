@@ -16,6 +16,8 @@ body_len -> uint16
 word_embedding -> 1200 bytes
 """
 
+print("cwd in meta: ", os.getcwd())
+
 class DocumentMeta:
     def __init__(self, title_length, body_length, meaning):
         self.meaning = meaning
@@ -26,7 +28,7 @@ class DocumentMeta:
 
 @singleton
 class MetaIndex:
-    _METADATA_FILE_PATH = "../../res/doc_metadata/metadata_file.bin"
+    _METADATA_FILE_PATH =  os.path.dirname(os.path.abspath(__file__)) + "/../../res/doc_metadata/metadata_file.bin"
 
     def __init__(self):
         if not os.path.isfile(self._METADATA_FILE_PATH):

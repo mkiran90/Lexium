@@ -24,8 +24,8 @@ positions -> num_positions * 4 b (4b wordIDs uint32)
 
 @singleton
 class ForwardIndex:
-    _OFFSET_FILE_PATH = "../../res/forward_index/offset_file.bin"
-    _DATA_FILE_PATH = "../../res/forward_index/data_file.bin"
+    _OFFSET_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/forward_index/offset_file.bin"
+    _DATA_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) +"../../res/forward_index/data_file.bin"
 
     def __init__(self):
         if not os.path.isfile(self._DATA_FILE_PATH):

@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask, request, render_template, redirect, url_for
 
 from src.document.DocURLDict import DocURLDict
@@ -10,6 +12,8 @@ from src.querying.ResultGeneration import ResultGeneration
 from src.util.util_functions import get_nlp
 
 app = Flask(__name__)
+
+
 
 # THESE SHOULD BE LOADED AS APP STARTS UP, OR AS SERVER STARTS
 nlp = get_nlp()
