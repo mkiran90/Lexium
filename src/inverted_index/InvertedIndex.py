@@ -219,6 +219,19 @@ class InvertedIndex:
                     presence.add_doc(index_update.docID, wordInDoc)
                     index_update.new.append(presence)
 
+    def latchOn(self, presence, wordInDoc_bytes):
+        arr_presence = bytearray(presence)
+
+        # modify the total num_bytes
+        arr_presence[4:8] = struct.pack("I", struct.unpack("I", arr_presence[4:8])[0] + len(wordInDoc_bytes))
+
+        # modify num_wordInDocs
+        arr_presence[8:12] = struct.pack("I", struct.unpack("I", arr_presence[8:12])[0] + 1)
+
+        arr_presence.append(wordInDoc_bytes)
+
+        return bytes(arr_presence)
+
 
     def accomodate_barrel_for_update(self, barrel_num, barrel_updates):
 
@@ -250,20 +263,12 @@ class InvertedIndex:
 
                 try:
                     wordInDoc_bytes = barrel_updates[wordID]
-
-                    # modify the total num_bytes
-                    presence[4:8] = struct.pack("I", struct.unpack("I", presence[4:8])[0] + len(wordInDoc_bytes))
-
-                    # modify num_wordInDocs
-                    presence[8:12] = struct.pack("I", struct.unpack("I", presence[8:12])[0] + 1)
-
-                    presence += wordInDoc_bytes
-
+                    new_presence = self.latchOn(presence, wordInDoc_bytes)
                     j -= 1
                 except KeyError:
-                    pass
+                    new_presence = presence
 
-                popped_presences.append(presence)
+                popped_presences.append(new_presence)
 
             i += 1
 
