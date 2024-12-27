@@ -243,15 +243,27 @@ class InvertedIndex:
             # barrel updates are in ascending order of in_barrel_pos
             # so if a presence's wordID matches a barrel update, it has to be the last barrel update (at j-1)
 
+            # LOGIC FOR LATCHING ON
             for presence in presences:
 
                 wordID = struct.unpack("I", presence[0:4])[0]
 
                 try:
-                    popped_presences.append(presence + barrel_updates[wordID])
+                    wordInDoc_bytes = barrel_updates[wordID]
+
+                    # modify the total num_bytes
+                    presence[4:8] = struct.pack("I", struct.unpack("I", presence[4:8])[0] + len(wordInDoc_bytes))
+
+                    # modify num_wordInDocs
+                    presence[8:12] = struct.pack("I", struct.unpack("I", presence[8:12])[0] + 1)
+
+                    presence += wordInDoc_bytes
+
                     j -= 1
                 except KeyError:
-                    popped_presences.append(presence)
+                    pass
+
+                popped_presences.append(presence)
 
             i += 1
 

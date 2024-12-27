@@ -109,7 +109,7 @@ class ResultGeneration:
         A = time.time()
         
         # ONLY TOP 1000
-        docId_urls = [self.urlDict.get(docID) for docID in sorted_doc_id_list[:1000]]
+        docId_urls = [self.urlDict.get(docID) for docID in sorted_doc_id_list[:100]]
         print("Time fetching URLs: ", time.time() - A)
         return docId_urls
 
@@ -162,6 +162,25 @@ class ResultGeneration:
         relevant_doc_ids = self._relevant_docs()
         sorted_doc_id_list = self._rank_documents(relevant_doc_ids)
         return sorted_doc_id_list
-    
+
+if __name__ == "__main__":
+        from src.document.DocURLDict import DocURLDict
+        from src.document.MetaIndex import MetaIndex
+        from src.forward_index.ForwardIndex import ForwardIndex
+        from src.inverted_index.InvertedIndex import InvertedIndex
+        from src.lexicon_gen.Lexicon import Lexicon
+        from src.lexicon_gen.WordEmbedding import WordEmbedding
+        from src.util.util_functions import get_nlp
+
+        nlp = get_nlp()
+        inverted_index = InvertedIndex()
+        forward_index = ForwardIndex()
+        lexicon = Lexicon()
+        urlDict = DocURLDict()
+        meta_index = MetaIndex()
+        word_embedding = WordEmbedding()
+
+        result = ResultGeneration("cat", nlp,inverted_index,forward_index,lexicon,urlDict,meta_index,word_embedding)
+        result.get_search_results()
     
     
