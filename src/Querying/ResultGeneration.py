@@ -140,6 +140,7 @@ class ResultGeneration:
     # Getting the corrected query, will be used as "Did you mean 'corrected_words'?"
      corrected_words = []
 
+
      for word in self.query:
         word_id = self.lexicon.get(word)
         

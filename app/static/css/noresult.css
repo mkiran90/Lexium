@@ -62,11 +62,6 @@ nav {
     font-size: 20px;
 }
 
-.text-center
-{
-   padding-left: 40px;
-
-}
 .contentSearch {
     margin-top: 70px; /* Adjust to account for the navbar height */
 }
@@ -79,7 +74,7 @@ nav {
     justify-content: center;
     position: relative;
     z-index: 1;
-    margin-top: 70px; /* Adjust to account for the navbar height */
+
 }
 
 .image-container {
@@ -161,17 +156,26 @@ nav {
     margin-bottom: 200px; /* Move big circle to the left */
 }
 
+.parent-container {  /* Replace with your actual parent container class or element */
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically (optional) */
+}
 
 .typo-suggestion {
-    align-items: self-start;
+    padding-top: 20px;
+    padding-left: 10px;
+    text-align: center; /* Centers the text inside the element */
     display: inline-block;
     margin-right: 20px;
     margin-bottom: 10px;
-    font-size: 17px;
+    font-size: 23px;
     color: #0cb368;
     font-weight: bold;
+    font-style: italic;
     text-decoration: none;
 }
+
 
 @keyframes move {
     0% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }

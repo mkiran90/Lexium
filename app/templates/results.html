@@ -28,7 +28,7 @@
     </nav>
 
     <div class="results-container">
-        <h1>Results for "{{ query }}"</h1>
+        <p>Results for "{{ query }}"</p>
         {% if typo_suggestion %}
         <a href="{{ url_for('results', query=corrected_query) }}" class="typo-suggestion">
             {{ typo_suggestion }}
@@ -39,7 +39,7 @@
             {% for result in results %}
             <li>
                 <a href="{{ result.link }}" target="_blank">{{ result.title }}</a><br>
-                <strong>Author:</strong> {{ result.author }}
+             
             </li>
             {% endfor %}
         </ul>

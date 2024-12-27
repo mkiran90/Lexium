@@ -64,8 +64,12 @@ def extract_info_from_link(link):
             else:
                 title = "Invalid title"
 
+         
+        title = title.title() 
         return {"title": title, "author": author}
 
+
+     
     except IndexError:
         return {"title": "Invalid link", "author": "Invalid link"}
     except Exception as e:
@@ -93,24 +97,22 @@ def results():
     if not query:
         return redirect(url_for('no_result'))
 
-    # Preprocess the query: split it into words and pass it to ResultGeneration
-    query_words = query.split()  # Split query into words
-
     # Create ResultGeneration object and correct the query words
-    result_gen = ResultGeneration(query_words, nlp, inverted_index, forward_index, lexicon, urlDict, meta_index, word_embedding)
-    corrected_query = result_gen._correct_query_words()  # Get corrected words
-    corrected_query_str = " ".join(corrected_query)
-    print(f"Corrected query: {corrected_query_str}")
+    result_gen = ResultGeneration(query, nlp, inverted_index, forward_index, lexicon, urlDict, meta_index, word_embedding)
+   
 
     # Get search results
     urls = result_gen.get_search_results()
 
-    # If no results, handle typo suggestion if correction exists
-    if not urls:
-        if corrected_query_str != query:  # Only suggest if query was corrected
-            return redirect(url_for('no_result', query=query, corrected_query=corrected_query_str))
-        else:
-            return redirect(url_for('no_result'))  # No typo suggestion
+    # # If no results, handle typo suggestion if correction exists
+    # if not urls:
+    #     corrected_query = result_gen._correct_query_words()  # Get corrected words
+    #     corrected_query_str = " ".join(corrected_query)
+    #     print(f"Corrected query: {corrected_query_str}")
+    #     if corrected_query_str != query:  # Only suggest if query was corrected
+    #         return redirect(url_for('no_result', query=query, corrected_query=corrected_query_str))
+    #     else:
+    #         return redirect(url_for('no_result'))  # No typo suggestion
 
     # Handle case where results are found
     docs_per_page = 10
