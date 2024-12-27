@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     navigateTo("homeLink", "/");
 
     // Redirect to Add Articles
-    navigateTo("addArticle", "/add_articles");
+    navigateTo("addArticle", "http://127.0.0.1:5001/");
 
     navigateTo("addHomeLink" , "http://127.0.0.1:5000/")
 });
