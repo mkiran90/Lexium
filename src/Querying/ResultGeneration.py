@@ -3,7 +3,7 @@ from itertools import combinations
 
 import numpy as np
 import Levenshtein
-
+from src.document.DocURLDict import DocURLDict 
 from src.ranking.BM25 import get_bm25_score,_idf
 from src.ranking.Proximity import get_body_prox_score, get_title_prox_score
 from src.ranking.Semantic import get_semantic_score
@@ -137,23 +137,22 @@ class ResultGeneration:
         return query_embedding
     
     def _correct_query_words(self):
+    # Getting the corrected query, will be used as "Did you mean 'corrected_words'?"
+     corrected_words = []
 
-        #getting the corrected query, will be as Did you mean "corrected_words"
-        corrected_words = []
+     for word in self.query:
+        word_id = self.lexicon.get(word)
         
-        for word in self.query:
-        
-            word_id = self.lexicon.get(word)
-            
-            if word_id is None: 
-               
-                lexicon_words = [word for word in self.lexicon._lexicon]
-                closest_match = min(lexicon_words, key=lambda x: Levenshtein.distance(word, x))
-                corrected_words.append(closest_match)
-            else:
-                corrected_words.append(word)
-        
-        return corrected_words
+        if word_id is None: 
+            # If word is not found in the lexicon, find the closest match
+            lexicon_words = [word for word in self.lexicon._lexicon]
+            closest_match = min(lexicon_words, key=lambda x: Levenshtein.distance(word, x))
+            corrected_words.append(closest_match)
+        else:
+            # If word is found, keep it unchanged
+            corrected_words.append(word)
+    
+     return corrected_words
     
     def get_search_docIDs(self):
 

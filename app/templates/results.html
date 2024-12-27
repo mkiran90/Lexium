@@ -39,7 +39,6 @@
             {% for result in results %}
             <li>
                 <a href="{{ result.link }}" target="_blank">{{ result.title }}</a><br>
-                <strong>Tags:</strong> {{ result.tags }}<br>
                 <strong>Author:</strong> {{ result.author }}
             </li>
             {% endfor %}
@@ -48,7 +47,7 @@
             <!-- Making the page stuff -->
             <div class="pagination">
                 {% if current_page > 1 %}
-                    <a href="{{ url_for('results', query=query, page=current_page-1) }}" class="button">Previous</a>
+                    <a href="{{ url_for('results', query=corrected_query) }} " class= "button">Previous</a>
                 {% endif %}
         
                 {% for page_num in pagination_range %}

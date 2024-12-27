@@ -28,11 +28,17 @@
     </nav>
     <div class="content">
         <div class="image-container">
+            {% if typo_suggestion %}
+            <a href="{{ url_for('results', query=corrected_query) }}" class="typo-suggestion">
+                Did you mean "{{ corrected_query }}"?
+            </a>
+            {% endif %}
             <div id="no_img"></div>
             <div class="text-overlay">
                 <h4>No results found</h4>
             </div>
         </div>
+       
         <div class="circles">
             <span class="circle big"></span>
             <span class="circle med"></span>

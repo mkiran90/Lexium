@@ -161,6 +161,18 @@ nav {
     margin-bottom: 200px; /* Move big circle to the left */
 }
 
+
+.typo-suggestion {
+    align-items: self-start;
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 10px;
+    font-size: 17px;
+    color: #0cb368;
+    font-weight: bold;
+    text-decoration: none;
+}
+
 @keyframes move {
     0% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
     25% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.9); }
