@@ -17,7 +17,7 @@ def get_position_map(body_words: list[int]):
     return position_map
 
 def get_word2vec():
-    return KeyedVectors.load_word2vec_format((os.path.dirname(os.path.abspath(__file__)) + "../../res/GoogleNews-vectors-negative300.bin"), binary=True)
+    return KeyedVectors.load_word2vec_format((os.path.dirname(os.path.abspath(__file__)) + "/../../res/GoogleNews-vectors-negative300.bin"), binary=True)
 
 def get_nlp():
     return spacy.load("en_core_web_md")

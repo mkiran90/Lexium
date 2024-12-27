@@ -161,7 +161,7 @@ class ArticleAddition:
         else:
             return False
 
-    def placeholder_add_with_content(self, title, body, tags, url):
+    def placeholder_add_with_content(self, title, body,  url):
         if url:
             return True
         else:

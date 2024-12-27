@@ -21,13 +21,17 @@ nlp = get_nlp()
 
 Adder = ArticleAddition(lexicon,fwd_index,inv_index,url_dict,model,word_embedding,meta,nlp)
 
-url = ""
-Adder.add_article(url=url)
+
 lexicon.save_lexicon()
 
 
 
 addService = Flask(__name__)
+
+@addService.route('/add_articles')
+def home():
+    return render_template('add_articles.html')
+
 
 @addService.route('/add_articles', methods=['GET', 'POST'])
 def add_articles():
@@ -39,7 +43,7 @@ def add_articles():
 
         
         if tab == 'content' and title and body and url: 
-            Adder.add_article(url)  
+            Adder.placeholder_add_with_content(title,body,url)
             return "Article with content added successfully."
         elif tab == 'link' and url:  
             Adder.placeholder_add(url) 
