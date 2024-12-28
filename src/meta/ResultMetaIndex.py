@@ -4,9 +4,9 @@ import struct
 from src.util.singleton import singleton
 
 @singleton
-class DocURLDict:
-    _DATA_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../../res/doc_url_dict/doc_url_dict_data.txt"
-    _OFFSET_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../../res/doc_url_dict/doc_url_dict_offset.bin"
+class ResultMetaIndex:
+    _DATA_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../../res/metadata/result/data.txt"
+    _OFFSET_FILE_PATH = os.path.dirname(os.path.abspath(__file__)) + "/../../res/metadata/result/offset.bin"
 
     def __init__(self):
         if not os.path.isfile(self._DATA_FILE_PATH):
@@ -22,13 +22,13 @@ class DocURLDict:
         offset:int = self._get_offset(docID)
         with open(self._DATA_FILE_PATH, "r", encoding="utf-8") as data_file:
             data_file.seek(offset)
-            url:str = data_file.readline()
-            return url.rstrip()
+            url_img_title:str = data_file.readline()
+            return url_img_title.rstrip().split('\0')
 
-    def store(self, url:str):
+    def store(self, url:str, img_url:str, title:str):
         with open(self._DATA_FILE_PATH, "a", encoding="utf-8") as data_file:
             offset = data_file.tell()
-            data_file.write(url + "\n") # write the URL as one line
+            data_file.write(f"{url}\0{img_url}\0{title}" + "\n")
 
         with open(self._OFFSET_FILE_PATH, "ab") as offset_file:
             docID = int(offset_file.tell()/4)

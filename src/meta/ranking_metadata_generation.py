@@ -1,9 +1,9 @@
-from src.document.MetaIndex import MetaIndex
+from src.meta.RankingMetaIndex import RankingMetaIndex
 from src.lexicon_gen.Lexicon import Lexicon
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.util.util_functions import get_word2vec
 
-meta = MetaIndex()
+meta = RankingMetaIndex()
 lexicon = Lexicon()
 inv_lexicon = list(lexicon._lexicon.keys())
 model = get_word2vec()

@@ -4,11 +4,11 @@ import time
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.lexicon_gen.Lexicon import Lexicon
 
-from src.document.DocURLDict import DocURLDict
+from src.meta.ResultMetaIndex import ResultMetaIndex
 
 index = ForwardIndex()
 lexicon = Lexicon()
-urlDict = DocURLDict()
+urlDict = ResultMetaIndex()
 from src.util.util_functions import get_position_map
 
 # converts row to a document, while storing all new words inside the document into the lexicon

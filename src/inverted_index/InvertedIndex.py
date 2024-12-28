@@ -1,7 +1,6 @@
 import io
 import os
 import struct
-import time
 
 from src.util.singleton import singleton
 from src.inverted_index.Barrel import Barrel, BarrelFullException
@@ -116,7 +115,7 @@ class InvertedIndex:
         barrel_num, in_barrel_pos = self._get_position(wordID)
 
         if barrel_num < 1:  # 0 and -1 both invalid
-            return
+            return None
 
         barrel = Barrel(barrel_num)
         return barrel.get(in_barrel_pos)

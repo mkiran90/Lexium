@@ -1,9 +1,8 @@
-import os
-
 from flask import Flask, request, render_template, redirect, url_for
 from spellchecker import SpellChecker
-from src.document.DocURLDict import DocURLDict
-from src.document.MetaIndex import MetaIndex
+
+from src.meta.ResultMetaIndex import ResultMetaIndex
+from src.meta.RankingMetaIndex import RankingMetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.inverted_index.InvertedIndex import InvertedIndex
 from src.lexicon_gen.Lexicon import Lexicon
@@ -13,15 +12,12 @@ from src.util.util_functions import get_nlp
 
 app = Flask(__name__)
 
-
-
-# THESE SHOULD BE LOADED AS APP STARTS UP, OR AS SERVER STARTS
 nlp = get_nlp()
 inverted_index = InvertedIndex()
 forward_index = ForwardIndex()
 lexicon = Lexicon()
-urlDict = DocURLDict()
-meta_index = MetaIndex()
+result_meta = ResultMetaIndex()
+rank_meta = RankingMetaIndex()
 word_embedding = WordEmbedding()
 
 def extract_title_from_link(link):
@@ -90,7 +86,7 @@ def results():
     spell = SpellChecker()
 
     try:
-        result_gen = ResultGeneration(query, nlp, inverted_index, forward_index, lexicon, urlDict, meta_index, word_embedding)
+        result_gen = ResultGeneration(query, nlp, inverted_index, forward_index, lexicon, result_meta, rank_meta, word_embedding)
     except Exception as e:
         print(f"Error initializing ResultGeneration: {e}")
         return redirect(url_for('no_result'))

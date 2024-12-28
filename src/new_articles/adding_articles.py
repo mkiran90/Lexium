@@ -13,12 +13,12 @@ from src.inverted_index.WordPresence import WordInDoc
 
 class ArticleAddition:
 
-    def __init__(self, lexicon,fwd_index,inv_index,url_dict,model,word_embedding,meta,nlp):
+    def __init__(self, lexicon,fwd_index,inv_index,result_meta,model,word_embedding,rank_meta,nlp):
         self.fwd_index = fwd_index
         self.inv_index = inv_index
         self.lexicon = lexicon
-        self.urlDict = url_dict
-        self.meta_index = meta
+        self.result_meta = result_meta
+        self.rank_meta = rank_meta
         self.word_embedding = word_embedding
         self.model = model
         self.nlp = nlp
@@ -47,7 +47,7 @@ class ArticleAddition:
         article = Article(url)
         self.download_with_retries(article)
         article.parse()
-        return article.title, article.tags, article.text
+        return article.title, article.tags, article.text, article.top_img
 
     def _generate_WordInDocMap(self,title_words, body_words):
         wordInDoc_map = {}
@@ -119,7 +119,7 @@ class ArticleAddition:
     def add_article(self,url: str):
 
         A = time.time()
-        title, tags, body = self._parse_url(url)
+        title, tags, body, img_url = self._parse_url(url)
         print("Url parsed successfully", time.time() - A)
 
         if not (self.valid_body(body) and self.valid_title(title)):
@@ -131,9 +131,9 @@ class ArticleAddition:
         print("Updated lexicon and word embeddings", time.time() - A)
 
         A = time.time()
-        # FORWARD INDEX AND DOCURLDICT UPDATES
+        # FORWARD INDEX AND RESULT_META UPDATES
         assigned_docID_1 = doc.store(self.fwd_index)
-        assigned_docID_2 = self.urlDict.store(url)
+        assigned_docID_2 = self.result_meta.store(url=url,img_url=img_url, title=title)
 
         # ensure integrity
         assert assigned_docID_1 == assigned_docID_2, "Disparity between fwd index and urldict docID"
@@ -141,8 +141,8 @@ class ArticleAddition:
         print("Updated Forward index and docurldict", time.time() - A)
 
         A = time.time()
-        # METADATA UPDATE
-        assigned_docID = self.meta_index.add_doc_metadata(len(doc.title_words), doc.doc_length(), body_meaning)
+        # RANK_META UPDATE
+        assigned_docID = self.rank_meta.add_doc_metadata(len(doc.title_words), doc.doc_length(), body_meaning)
         assert assigned_docID_1 == assigned_docID, "Disparity between metadata assigned docID and actual docID"
 
         print("Updated metadata", time.time() - A)
@@ -166,3 +166,37 @@ class ArticleAddition:
             return True
         else:
             return False
+
+
+if __name__ == "__main__":
+    from src.meta.ResultMetaIndex import ResultMetaIndex
+    from src.meta.RankingMetaIndex import RankingMetaIndex
+    from src.forward_index.ForwardIndex import ForwardIndex
+    from src.inverted_index.InvertedIndex import InvertedIndex
+    from src.lexicon_gen.Lexicon import Lexicon
+    from src.lexicon_gen.WordEmbedding import WordEmbedding
+    from src.util.util_functions import get_nlp, get_word2vec
+
+    lexicon = Lexicon()
+    fwd_index = ForwardIndex()
+    inv_index = InvertedIndex()
+    result_meta = ResultMetaIndex()
+
+    model = get_word2vec()
+    word_embedding = WordEmbedding()
+    rank_meta = RankingMetaIndex()
+    nlp = get_nlp()
+
+    Adder = ArticleAddition(lexicon, fwd_index, inv_index, result_meta, model, word_embedding, rank_meta, nlp)
+
+    while True:
+        url = input("Enter URL: ")
+        if url == "exit":
+            break
+        try:
+            Adder.add_article(url)
+            print("Indexed Successfully.")
+        except:
+            print("Couldnt Index")
+
+    lexicon.save_lexicon()
