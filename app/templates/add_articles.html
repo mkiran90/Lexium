@@ -9,9 +9,7 @@
 </head>
 <body>
     <nav class="NavBar">
-        <div class="logo-search">
-            Lexium
-        </div>
+        <div class="logo-search">Lexium</div>
         <div class="links">
             <a href="/" id="addArticle" class="icon">
                 <i class="fas fa-plus"></i>
@@ -21,140 +19,113 @@
             </a>
         </div>
     </nav>
-
-    <form action="/" method="POST">
-        <div class="tabs-container">
-            <button type="button" id="addContentBtn" class="tab-button active" onclick="switchPanel('content')">Add Content</button>
-            <button type="button" id="addLinkBtn" class="tab-button" onclick="switchPanel('link')">Add Link</button>
+   
+    <div class="container">
+        <div class="tab_box">
+            <button class="tab_btn active">Add Content</button>
+            <button class="tab_btn">Add Link</button>
+            <div class="line"></div>
         </div>
-
-        <div class="content" id="contentPanel">
-            <div class="input-container">
-                <label class="textAdd" for="input1">Title</label>
-                <textarea id="input1" name="title" placeholder="Enter title..." rows="4" cols="50"></textarea>
-            </div>
-
-            <div class="input-container">
-                <label class="textAdd" for="input2">Body</label>
-                <textarea id="input2" name="body" placeholder="Enter body..." rows="10" cols="50"></textarea>
-            </div>
-
-            <div class="input-container">
-                <label class="textAdd" for="inputLink">URL</label>
-                <textarea id="inputLink" name="url" placeholder="Enter URL..." rows="4" cols="50"></textarea>
-            </div>
-
-            <div class="btncontainer">
-                <button type="submit" class="btn" id="btn">
-                    <p id="btnText">Submit</p>
-                    <div class="check-box">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
-                            <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-                        </svg>
-                    </div>
-                </button>
-            </div>
+        <div class="content_box">
+            <form method="POST" action="/" class="content active" name="addContentForm">
+                <div class="input-container">
+                    <label class="textAdd" for="input1">Title</label>
+                    <textarea id="input1" name="title" placeholder="Enter title..." rows="4" cols="50"></textarea>
+                </div>
+                <div class="input-container">
+                    <label class="textAdd" for="input2">Body</label>
+                    <textarea id="input2" name="body" placeholder="Enter body..." rows="10" cols="50"></textarea>
+                </div>
+                <div class="input-container" id="url-container">
+                    <label class="textAdd" for="inputLink">URL</label>
+                    <textarea id="inputLink" name="url" placeholder="Enter URL..." rows="4" cols="50"></textarea>
+                </div>
+                <div class="btncontainer">
+                    <button type="submit" name="addContent" value="Submit" class="btn" id="btn">
+                        <p id="btnText">Submit</p>
+                        <div class="check-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                                <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+            </form>
+            
+            <form method="POST" action="/" class="content" name="addLinkForm">
+                <div class="input-container">
+                    <label class="textAdd" for="inputLink">URL</label>
+                    <textarea id="inputLink" name="urlonly" placeholder="Enter URL..." rows="4" cols="50"></textarea>
+                </div>
+                <div class="btncontainer">
+                    <button type="submit" name="addLink" value="Submit Link" class="btn" id="btnLink">
+                        <p id="btnLinkText">Submit Link</p>
+                        <div class="check-box">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                                <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+            </form>
+            
         </div>
-
-        <div class="content" id="linkPanel" style="display: none;">
-            <div class="input-container">
-                <label class="textAdd" for="inputLink">URL</label>
-                <textarea id="inputLink" name="url" placeholder="Enter URL..." rows="4" cols="50"></textarea>
-            </div>
-
-            <div class="btncontainer">
-                <button type="submit" class="btn" id="btnLink">
-                    <p id="btnLinkText">Submit Link</p>
-                    <div class="check-box">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
-                            <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-                        </svg>
-                    </div>
-                </button>
-            </div>
-        </div>
-    </form>
+    </div>
+    
 
     <script>
-        function switchPanel(panel) {
-            const contentPanel = document.getElementById('contentPanel');
-            const linkPanel = document.getElementById('linkPanel');
-            const addContentBtn = document.getElementById('addContentBtn');
-            const addLinkBtn = document.getElementById('addLinkBtn');
-            const activeTab = document.getElementById('activeTab');
-            
-            if (panel === 'content') {
-                contentPanel.classList.add('active');
-                linkPanel.classList.remove('active');
-                addContentBtn.classList.add('active');
-                addLinkBtn.classList.remove('active');
-                activeTab.value = 'content';  // Set active tab to 'content'
-            } else {
-                linkPanel.classList.add('active');
-                contentPanel.classList.remove('active');
-                addLinkBtn.classList.add('active');
-                addContentBtn.classList.remove('active');
-                activeTab.value = 'link';  // Set active tab to 'link'
-            }
-        }
-    </script>
+    const tabs = document.querySelectorAll('.tab_btn');  
+    const all_content = document.querySelectorAll('.content');
+    const line = document.querySelector('.line');  
 
+    document.addEventListener("DOMContentLoaded", () => {
+    const activeTab = document.querySelector('.tab_btn.active');
+    if (activeTab) {
+        line.style.width = activeTab.offsetWidth + "px";
+        line.style.left = activeTab.offsetLeft + "px";
+    }
+    });
 
-    <script type="text/javascript">
-        function switchPanel(panel) {
-            const contentPanel = document.getElementById('contentPanel');
-            const linkPanel = document.getElementById('linkPanel');
-            const addContentBtn = document.getElementById('addContentBtn');
-            const addLinkBtn = document.getElementById('addLinkBtn');
+tabs.forEach((tab, index) => {
+    tab.addEventListener('click', (e) => {
+        tabs.forEach(tab => tab.classList.remove('active'));
+        tab.classList.add('active');
 
-            if (panel === 'content') {
-                contentPanel.style.display = 'block';
-                linkPanel.style.display = 'none';
-                addContentBtn.classList.add('active');
-                addLinkBtn.classList.remove('active');
-            } else if (panel === 'link') {
-                linkPanel.style.display = 'block';
-                contentPanel.style.display = 'none';
-                addLinkBtn.classList.add('active');
-                addContentBtn.classList.remove('active');
-            }
-        }
-
-        // Add click event listener to the submit button
-        const btn = document.getElementById('btn');
-        const btnLink = document.getElementById('btnLink');
-        const btnText = document.getElementById('btnText');
-        const btnLinkText = document.getElementById('btnLinkText');
-        const checkBox = document.querySelector('.check-box');
-
-        btn.addEventListener('click', function(event) {
-            event.preventDefault(); 
-            btnText.innerHTML = "Thanks";
-            btn.classList.add("active");
-            checkBox.classList.add("active");
-      
-            setTimeout(function() {
-                
-                btnText.innerHTML = "Submit";
-                btn.classList.remove("active");
-                checkBox.classList.remove("active");
-            }, 8000); 
-        });
-
-        btnLink.addEventListener('click', function(event) {
-        event.preventDefault(); 
-        btnLinkText.innerHTML = "Thanks"; 
-        btnLink.classList.add("active"); 
-        checkBox.classList.add("active"); 
-
-    
-        setTimeout(function() {
-        btnLinkText.innerHTML = "Submit";
-        btnLink.classList.remove("active"); 
-        checkBox.classList.remove("active"); 
-    }, 8000); 
+        line.style.width = e.target.offsetWidth + "px";
+        line.style.left = e.target.offsetLeft + "px";
+        
+        all_content.forEach(content => content.classList.remove('active'));
+        all_content[index].classList.add('active');
+    });
 });
-;
+
+const handleSubmit = (btn, btnText, checkBox, text, form) => {
+    btn.addEventListener('click', function (event) {
+        event.preventDefault(); // Prevent the form from submitting immediately
+        btnText.innerText = "Done"; // Change text to "Done"
+        btn.classList.add("active");
+        checkBox.classList.add("active");
+
+        // Timeout to wait for animation before submitting
+        setTimeout(() => {
+            btnText.innerText = text; // Restore the original text
+            btn.classList.remove("active");
+            checkBox.classList.remove("active");
+
+            form.submit();
+        }, 3000); 
+    });
+};
+
+// Get references to the buttons and forms
+const addContentForm = document.querySelector('form[name="addContentForm"]');
+const addLinkForm = document.querySelector('form[name="addLinkForm"]');
+
+// Apply the handleSubmit function for both buttons
+handleSubmit(document.getElementById('btn'), document.getElementById('btnText'), document.querySelector('.check-box'), "Submit", addContentForm);
+handleSubmit(document.getElementById('btnLink'), document.getElementById('btnLinkText'), document.querySelector('.check-box'), "Submit Link", addLinkForm);
+
+
     </script>
 </body>
 </html>

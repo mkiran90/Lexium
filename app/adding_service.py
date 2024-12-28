@@ -30,27 +30,26 @@ lexicon.save_lexicon()
 
 addService = Flask(__name__)
 
-@addService.route('/' , methods=['GET', 'POST'])
+@addService.route('/', methods=['GET', 'POST'])
 def home():
-    print("Doob")
+    print("done")
     if request.method == 'POST':
+        # Get the  data
+        url = request.form.get('url')
+        urlonly = request.form.get('urlonly')
         title = request.form.get('title')
         body = request.form.get('body')
-        url = request.form.get('url')
-        tab = request.form.get('tab')
-
-        if tab == 'content' and title and body and url:
+        
+        if title and body and url:
             Adder.placeholder_add_with_content(title, body, url)
-            print("Yeah")
-            return "Article with content added successfully."
-        elif tab == 'link' and url:
-            print("No")
-            Adder.placeholder_add(url)
-            return "URL added successfully."
+            print("Content added successfully.")
+
+        if urlonly:
+            Adder.placeholder_add(urlonly)
+            print("URL added successfully.")
+
 
     return render_template('add_articles.html')
-
-
 
 
 if __name__ == '__main__':

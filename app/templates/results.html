@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results</title>
+    <title>Search Page</title>
     <link rel="stylesheet" href="../static/css/search_result.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
@@ -12,11 +12,11 @@
         <div class="logo-search">
             Lexium
         </div>
-        <form id="searchForm" method="POST"> 
-        <div class="searchBar">
-            <input type="text" id="search" class="search" placeholder="Search" />
-        </div>
-    </form>
+        <form id="searchForm" method="POST">
+            <div class="searchBar">
+                <input type="text" id="search" class="search" placeholder="Search" />
+            </div>
+        </form>
         <div class="links">
             <a href="/add_articles" id="addArticle" class="icon">
                 <i class="fas fa-plus"></i>
@@ -26,48 +26,103 @@
             </a>
         </div>
     </nav>
-
-    <div class="results-container">
-        <p>Results for "{{ query }}"</p>
-        {% if typo_suggestion %}
-        <a href="{{ url_for('results', query=corrected_query) }}" class="typo-suggestion">
-            {{ typo_suggestion }}
-        </a>
-        {% endif %}
-        {% if results %}
-        <ul>
-            {% for result in results %}
-            <li>
-                <a href="{{ result.link }}" target="_blank">{{ result.title }}</a><br>
-             
-            </li>
-            {% endfor %}
-        </ul>
-    
-            <!-- Making the page stuff -->
-            <div class="pagination">
-                {% if current_page > 1 %}
-                    <a href="{{ url_for('results', query=corrected_query) }} " class= "button">Previous</a>
+   
+    <div class="container">
+        <div class="tab_box">
+            <button class="tab_btn active">Search Titles</button>
+            <button class="tab_btn">Search Images</button>
+            <div class="line"></div>
+        </div>
+        <div class="content_box">
+            <div class="content active">
+                <p>Results for "{{ query }}"</p>
+                {% if corrected_query and corrected_query != query %}
+                <a href="{{ url_for('results', query=corrected_query) }}" class="typo-suggestion">
+                    Did you mean "{{ corrected_query }}"?
+                </a>
                 {% endif %}
-        
-                {% for page_num in pagination_range %}
-                    {% if page_num == current_page %}
-                        <span class="button current-page">{{ page_num }}</span>
-                    {% else %}
-                        <a href="{{ url_for('results', query=query, page=page_num) }}" class="button">{{ page_num }}</a>
-                    {% endif %}
-                {% endfor %}
-        
-                {% if current_page < total_pages %}
-                    <a href="{{ url_for('results', query=query, page=current_page+1) }}" class="button">Next</a>
+         
+                {% if results %}
+                <ul>
+                    {% for result in results %}
+                    <li>
+                        <a href="{{ result.link }}" target="_blank">{{ result.title }}</a><br>
+                     
+                    </li>
+                    {% endfor %}
+                </ul>
+            
+                    <!-- Making the page stuff -->
+                    <div class="pagination">
+                        {% if current_page > 1 %}
+                            <a href="{{ url_for('results', query=corrected_query) }} " class= "button">Previous</a>
+                        {% endif %}
+                
+                        {% for page_num in pagination_range %}
+                            {% if page_num == current_page %}
+                                <span class="button current-page">{{ page_num }}</span>
+                            {% else %}
+                                <a href="{{ url_for('results', query=query, page=page_num) }}" class="button">{{ page_num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                
+                        {% if current_page < total_pages %}
+                            <a href="{{ url_for('results', query=query, page=current_page+1) }}" class="button">Next</a>
+                        {% endif %}
+                    </div>
+            
                 {% endif %}
+            
             </div>
-    
-        {% endif %}
-    
+            <div class="content">
+                <div class="img-container">
+                    <p>Results for "{{ query }}"</p>
+                    <ul class="image-results">
+                        {% for image in images %}
+                        <li  class ="li-img">
+                            <a href="#">
+                                <figure>
+                                    <img src="{{ image.src }}" alt="{{ image.alt }}">
+                                    <figcaption>{{ image.title }}</figcaption>
+                                </figure>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
+
     <script src="../static/js/script.js"></script>
-    
+    <script >
+    const tabs = document.querySelectorAll('.tab_btn');  
+    const all_content = document.querySelectorAll('.content');
+    const line = document.querySelector('.line');  
+
+    document.addEventListener("DOMContentLoaded", () => {
+    const activeTab = document.querySelector('.tab_btn.active');
+    if (activeTab) {
+        line.style.width = activeTab.offsetWidth + "px";
+        line.style.left = activeTab.offsetLeft + "px";
+    }
+    });
+
+tabs.forEach((tab, index) => {
+    tab.addEventListener('click', (e) => {
+        tabs.forEach(tab => tab.classList.remove('active'));
+        tab.classList.add('active');
+
+        line.style.width = e.target.offsetWidth + "px";
+        line.style.left = e.target.offsetLeft + "px";
+        
+        all_content.forEach(content => content.classList.remove('active'));
+        all_content[index].classList.add('active');
+    });
+});
+
+       
+    </script>
 </body>
 </html>

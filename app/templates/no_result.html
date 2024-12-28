@@ -44,7 +44,7 @@
         </div>
     </div>
     <div class = "parent-container">
-    {% if typo_suggestion %}
+    {% if show_suggestion %}
     <a href="{{ url_for('results', query=corrected_query) }}" class="typo-suggestion">
         Did you mean "{{ corrected_query }}"?
     </a>

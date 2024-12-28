@@ -1,9 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const searchForm = document.getElementById("searchForm");
 
-    // Handle search form submission
     searchForm.addEventListener("submit", (event) => {
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault(); 
 
         const searchInput = document.getElementById("search");
         const query = searchInput.value.trim();
@@ -13,11 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Redirect to the results page with the query as a parameter
         window.location.href = `/results?query=${encodeURIComponent(query)}`;
     });
 
-    // Navigation handlers for other links/buttons
     const navigateTo = (selector, route) => {
         const element = document.getElementById(selector);
         if (element) {

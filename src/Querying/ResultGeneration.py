@@ -141,7 +141,7 @@ class ResultGeneration:
      corrected_words = []
 
 
-     for word in self.query:
+     for word in self.query.split():
         word_id = self.lexicon.get(word)
         
         if word_id is None: 
