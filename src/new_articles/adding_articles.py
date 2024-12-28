@@ -10,7 +10,7 @@ from src.document.Document import Document, DocumentBodyWord
 
 from src.inverted_index.WordPresence import WordInDoc
 
-
+# ADD METHOD HANDLES LEXICON SAVING AS WELL
 class ArticleAddition:
 
     def __init__(self, lexicon,fwd_index,inv_index,result_meta,model,word_embedding,rank_meta,nlp):
@@ -116,11 +116,8 @@ class ArticleAddition:
 
         return doc, wordInDoc_map, body_meaning
 
-    def add_article(self,url: str):
 
-        A = time.time()
-        title, tags, body, img_url = self._parse_url(url)
-        print("Url parsed successfully", time.time() - A)
+    def _add(self, title, tags, body, img_url, url):
 
         if not (self.valid_body(body) and self.valid_title(title)):
             raise Exception("INVALID ARTICLE, WILL NOT INDEX")
@@ -152,20 +149,32 @@ class ArticleAddition:
         self.inv_index.index_document(assigned_docID, doc_wordInDocs=wordInDoc_map)
         print("Updated Inverted Index", time.time() - A)
 
-    def add_with_content(self, title, body, tags, url):
-        pass
+        A = time.time()
+        # SAVING LEXICON
+        self.lexicon.save_lexicon()
+        print("Saved lexicon", time.time() - A)
 
-    def placeholder_add(self, url):
-        if url:
-            return True
-        else:
-            return False
 
-    def placeholder_add_with_content(self, title, body,  url):
-        if url:
-            return True
-        else:
-            return False
+        print("Article Indexed")
+
+    def add_with_url(self,url: str):
+
+        A = time.time()
+        title, tags, body, img_url = self._parse_url(url)
+        print("Url parsed successfully", time.time() - A)
+
+        self._add(title, tags, body, img_url, url)
+
+
+    def add_with_content(self, title, body, url):
+
+        tags = []
+        img_url = ""
+
+        if not (self.valid_body(body) and self.valid_title(title)):
+            raise Exception("INVALID ARTICLE, WILL NOT INDEX")
+
+        self._add(title, tags, body, img_url, url)
 
 
 if __name__ == "__main__":
@@ -194,7 +203,7 @@ if __name__ == "__main__":
         if url == "exit":
             break
         try:
-            Adder.add_article(url)
+            Adder.add_with_url(url)
             print("Indexed Successfully.")
         except:
             print("Couldnt Index")

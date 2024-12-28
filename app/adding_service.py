@@ -14,19 +14,12 @@ fwd_index = ForwardIndex()
 inv_index = InvertedIndex()
 result_meta = ResultMetaIndex()
 
-#TODO: model = get_word2vec()
-model = None
+model = get_word2vec()
 word_embedding = WordEmbedding()
 rank_meta = RankingMetaIndex()
 nlp = get_nlp()
 
-
 Adder = ArticleAddition(lexicon,fwd_index,inv_index,result_meta,model,word_embedding,rank_meta,nlp)
-
-
-lexicon.save_lexicon()
-
-
 
 addService = Flask(__name__)
 
@@ -41,13 +34,12 @@ def home():
         body = request.form.get('body')
         
         if title and body and url:
-            Adder.placeholder_add_with_content(title, body, url)
+            Adder.add_with_content(title, body, url="")
             print("Content added successfully.")
 
         if urlonly:
-            Adder.placeholder_add(urlonly)
+            Adder.add_with_url(url=urlonly)
             print("URL added successfully.")
-
 
     return render_template('add_articles.html')
 

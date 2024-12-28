@@ -95,23 +95,21 @@ def results():
     words = query.split()
     corrected_words = [spell.correction(word) for word in words]
 
-   
     corrected_words = [word for word in corrected_words if word is not None]
 
-  
     corrected_query_str = " ".join(corrected_words) if corrected_words else query
 
     show_suggestion = bool(corrected_query_str) and corrected_query_str != query
  
    
-    urls = result_gen.get_search_results()
+    articles = result_gen.get_search_results()
 
     # Case 1: No URLs and no typo suggestions
-    if not urls and not show_suggestion:
+    if not articles and not show_suggestion:
         return redirect(url_for('no_result'))
 
     # Case 2: No URLs but there is a typo so give suggestions
-    if not urls and show_suggestion:
+    if not articles and show_suggestion:
         return render_template(
             'no_result.html',
             query=query,
@@ -121,7 +119,7 @@ def results():
 
     # Pagination thingy
     docs_per_page = 10
-    total_docs = len(urls)
+    total_docs = len(articles)
     total_pages = max((total_docs + docs_per_page - 1) // docs_per_page, 1)
 
     try:
@@ -134,10 +132,10 @@ def results():
     pagination_range = list(range(max(1, page - 2), min(total_pages + 1, page + 3)))
     start_index = (page - 1) * docs_per_page
     end_index = start_index + docs_per_page
-    paginated_urls = urls[start_index:end_index]
+    paginated_urls = articles[start_index:end_index]
 
     # Case 3: URLs and typo suggestions
-    if urls and show_suggestion:
+    if articles and show_suggestion:
         return render_template(
             'results.html',
             results=[{
@@ -155,7 +153,7 @@ def results():
         )
 
     # Case 4: URLs and no typo suggestions
-    if urls and not show_suggestion:
+    if articles and not show_suggestion:
         return render_template(
             'results.html',
             results=[{
