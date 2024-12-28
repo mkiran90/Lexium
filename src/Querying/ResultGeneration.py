@@ -3,7 +3,6 @@ from itertools import combinations
 
 import numpy as np
 import Levenshtein
-from src.document.DocURLDict import DocURLDict 
 from src.ranking.BM25 import get_bm25_score,_idf
 from src.ranking.Proximity import get_body_prox_score, get_title_prox_score
 from src.ranking.Semantic import get_semantic_score
@@ -12,12 +11,12 @@ from src.preprocessing.data_cleaning import clean_title
 
 class ResultGeneration:
 
-    def __init__(self, query, nlp,inverted_index,forward_index,lexicon,urlDict,meta_index,word_embedding):
+    def __init__(self, query, nlp,inverted_index,forward_index,lexicon,resultMeta,rankMeta,word_embedding):
         self.forward_index = forward_index
         self.inverted_index = inverted_index
         self.lexicon = lexicon
-        self.urlDict = urlDict
-        self.meta_index = meta_index
+        self.resultMeta = resultMeta
+        self.rankMeta = rankMeta
         self.word_embedding = word_embedding
         self.query = query
         self.clean_query_words = clean_title(query, nlp,for_csv=False)
@@ -27,6 +26,8 @@ class ResultGeneration:
         self.idf_map = self._generate_idf_map()
 
     def _generate_presence_map(self):
+
+
 
         # TODO: make sure each wordID is indexed first so assertion never fails
 
@@ -46,7 +47,7 @@ class ResultGeneration:
         return idf_map
 
     def _generate_docmeta_map(self, doc_list):
-        return self.meta_index.batch_load(doc_list)
+        return self.rankMeta.batch_load(doc_list)
 
 
     def _relevant_docs(self):
@@ -88,7 +89,7 @@ class ResultGeneration:
         body_prox = get_body_prox_score(self.presence_map, doc_id)
         body = body_freq * body_prox
 
-        title_freq = get_title_score(self.presence_map, doc_id, doc_meta=doc_meta)
+        title_freq = get_title_score(self.presence_map, doc_id)
         title_prox = get_title_prox_score(self.presence_map, doc_id)
         title = title_freq * title_prox
         semantic = get_semantic_score(self.query_meaning, doc_meta=doc_meta)
@@ -108,10 +109,11 @@ class ResultGeneration:
         print("Time ranking and sorting: ", time.time() - A)
         A = time.time()
         
-        # ONLY TOP 1000
-        docId_urls = [self.urlDict.get(docID) for docID in sorted_doc_id_list[:1000]]
+        # ONLY TOP 100
+        # here info is a [url, img_url, title]
+        docId_info = [self.resultMeta.get(docID) for docID in sorted_doc_id_list[:100]]
         print("Time fetching URLs: ", time.time() - A)
-        return docId_urls
+        return docId_info
 
     def _rank_documents(self, doc_id_list: set):
         docmeta_map = self._generate_docmeta_map(doc_id_list)

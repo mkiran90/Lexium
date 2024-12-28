@@ -1,5 +1,5 @@
-from src.document.DocURLDict import DocURLDict
-from src.document.MetaIndex import MetaIndex
+from src.document.DocURLDict import ResultMetaIndex
+from src.document.MetaIndex import RankingMetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 from src.inverted_index.InvertedIndex import InvertedIndex
 from src.lexicon_gen.Lexicon import Lexicon
@@ -12,12 +12,12 @@ from flask import Flask, render_template, request
 lexicon = Lexicon()
 fwd_index = ForwardIndex()
 inv_index = InvertedIndex()
-url_dict = DocURLDict()
+url_dict = ResultMetaIndex()
 
 #TODO: model = get_word2vec()
 model = None
 word_embedding = WordEmbedding()
-meta = MetaIndex()
+meta = RankingMetaIndex()
 nlp = get_nlp()
 
 

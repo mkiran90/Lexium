@@ -18,7 +18,7 @@ word_embedding -> 1200 bytes
 
 print("cwd in meta: ", os.getcwd())
 
-class DocumentMeta:
+class DocumentRankingMeta:
     def __init__(self, title_length, body_length, meaning):
         self.meaning = meaning
         self.body_length = body_length
@@ -27,8 +27,8 @@ class DocumentMeta:
 
 
 @singleton
-class MetaIndex:
-    _METADATA_FILE_PATH =  os.path.dirname(os.path.abspath(__file__)) + "/../../res/doc_metadata/metadata_file.bin"
+class RankingMetaIndex:
+    _METADATA_FILE_PATH =  os.path.dirname(os.path.abspath(__file__)) + "/../../res/metadata/ranking/data.bin"
 
     def __init__(self):
         if not os.path.isfile(self._METADATA_FILE_PATH):
@@ -114,14 +114,14 @@ class MetaIndex:
             for docID in doc_list:
                 f.seek(self._get_offset(docID))
                 doc_bytes = f.read(1203)
-                doc_map[docID] = DocumentMeta(title_length=struct.unpack("B", doc_bytes[0:1])[0], body_length=struct.unpack("H", doc_bytes[1:3])[0], meaning=np.frombuffer(doc_bytes[3:], dtype=np.float32))
+                doc_map[docID] = DocumentRankingMeta(title_length=struct.unpack("B", doc_bytes[0:1])[0], body_length=struct.unpack("H", doc_bytes[1:3])[0], meaning=np.frombuffer(doc_bytes[3:], dtype=np.float32))
 
         return doc_map
 
 
 if __name__ == "__main__":
 
-    meta = MetaIndex()
+    meta = RankingMetaIndex()
     doc_list = list(range(100000))
     A = time.time()
     meta.batch_load(doc_list)

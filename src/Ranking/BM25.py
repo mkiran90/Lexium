@@ -1,7 +1,7 @@
 
 import math
 
-from src.document.MetaIndex import MetaIndex
+from src.meta.RankingMetaIndex import RankingMetaIndex
 from src.forward_index.ForwardIndex import ForwardIndex
 
 '''
@@ -26,7 +26,7 @@ Method of retrieval:
 '''
 
 # open and close
-meta_index = MetaIndex()
+meta_index = RankingMetaIndex()
 forward_index = ForwardIndex()
 doc_count = forward_index.size()
 avg_doc_length = meta_index.total_word_count() / doc_count
