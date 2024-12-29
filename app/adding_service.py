@@ -9,7 +9,6 @@ from src.util.util_functions import get_nlp, get_word2vec
 
 from flask import Flask, render_template, request, jsonify
 
-import time  # remove this just for testing 
 
 lexicon = Lexicon()
 fwd_index = ForwardIndex()
@@ -45,7 +44,6 @@ def handle_post():
             print(urlonly)
             print('adding')
             Adder.add_with_url(urlonly)
-            time.sleep(5)  # remove this just for testing 
             response["status"] = "success"
             print('added')
     except Exception as e:

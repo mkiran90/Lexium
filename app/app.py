@@ -20,59 +20,82 @@ result_meta = ResultMetaIndex()
 rank_meta = RankingMetaIndex()
 word_embedding = WordEmbedding()
 
-def extract_title_from_link(link):
+# Global storage for query, results, and current page
+search = {
+    'query': None,
+    'results': None,
+    'current_page': 1,  # Store the current page
+}
+
+def fetch_and_correct_results(query):
+    # If query same return the global results
+    if search['query'] == query:
+        return search['results'], query, False
+
     try:
-       
-        title_with_sequence = link.split("/")[-1]
-  
-        title_parts = title_with_sequence.split("-")
-        
-        if title_parts[-1].isalnum():  
-            title_parts.pop()
-        
-        title = ' '.join(title_parts).title()
-        
-        return title
-
+        result_gen = ResultGeneration(query, nlp, inverted_index, forward_index, lexicon, result_meta, rank_meta, word_embedding)
     except Exception as e:
-        print(f"Error: {e}")
-        return "Invalid link"
+        print(f"Error initializing ResultGeneration: {e}")
+        return [], "", False
 
+    spell = SpellChecker()
+    words = query.split()
+    corrected_words = [spell.correction(word) for word in words]
+    corrected_query_str = " ".join([word for word in corrected_words if word is not None]) if corrected_words else query
+
+    show_suggestion = corrected_query_str != query
+    
+    # getting the articles
+    articles = result_gen.get_search_results()
+
+    # Store the query, results, and reset current page to 1 (default)
+    search['query'] = query
+    search['results'] = articles
+    search['current_page'] = 1  # Reset to the first page when new query is made
+
+    return articles, corrected_query_str, show_suggestion
+
+
+def paginate_results(articles, page, docs_per_page):
+    """Handle pagination of results."""
+    total_docs = len(articles)
+    total_pages = max((total_docs + docs_per_page - 1) // docs_per_page, 1)
+
+    page = max(1, min(page, total_pages))
+
+    start_index = (page - 1) * docs_per_page
+    end_index = start_index + docs_per_page
+    paginated_urls = articles[start_index:end_index]
+
+    return paginated_urls, total_pages
 
 
 @app.route('/results')
 def results():
-   
     query = request.args.get('query', '').strip()
     print(f"User query: {query}")
 
     if not query:
         return redirect(url_for('no_result'))
 
-    spell = SpellChecker()
+    # Fetch results for the query
+    articles, corrected_query_str, show_suggestion = fetch_and_correct_results(query)
 
-    try:
-        result_gen = ResultGeneration(query, nlp, inverted_index, forward_index, lexicon, result_meta, rank_meta, word_embedding)
-    except Exception as e:
-        print(f"Error initializing ResultGeneration: {e}")
-        return redirect(url_for('no_result'))
+    # Pagination parameters
+    docs_per_page = 9
+    page = int(request.args.get('page', search['current_page']))  # Use stored page if not provided
+    search['current_page'] = page  # Update the stored page
 
-    words = query.split()
-    corrected_words = [spell.correction(word) for word in words]
-    corrected_words = [word for word in corrected_words if word is not None]
-    corrected_query_str = " ".join(corrected_words) if corrected_words else query
+    # Paginate the results
+    paginated_urls, total_pages = paginate_results(articles, page, docs_per_page)
+    pagination_range = list(range(max(1, page - 2), min(total_pages + 1, page + 3)))
+    default_img_url = url_for('static', filename='img/default.png')
 
-    show_suggestion = bool(corrected_query_str) and corrected_query_str != query
-
-    
-    
-    articles = result_gen.get_search_results()
-
-    # Case 1: No URLs and no typo suggestions
+    # Case 1: No articles and no typo suggestions
     if not articles and not show_suggestion:
         return redirect(url_for('no_result'))
 
-    # Case 2: No URLs but there is a typo, so give suggestions
+    # Case 2: No articles but there is a typo, so give suggestions
     if not articles and show_suggestion:
         return render_template(
             'no_result.html',
@@ -81,33 +104,14 @@ def results():
             show_suggestion=True,
         )
 
-    # Pagination thing
-    docs_per_page = 9
-    total_docs = len(articles)
-    total_pages = max((total_docs + docs_per_page - 1) // docs_per_page, 1)
-
-    try:
-        page = int(request.args.get('page', 1))
-        if page < 1 or page > total_pages:
-            raise ValueError
-    except ValueError:
-        return redirect(url_for('no_result'))
-
-    pagination_range = list(range(max(1, page - 2), min(total_pages + 1, page + 3)))
-    start_index = (page - 1) * docs_per_page
-    end_index = start_index + docs_per_page
-    paginated_urls = articles[start_index:end_index]
-
-    default_img_url = url_for('static', filename='img/default.png')
-
-    # Case 3: URLs and typo suggestions
+    # Case 3: Articles and typo suggestions
     if articles and show_suggestion:
         return render_template(
             'results.html',
             results=[{
-                "title": title,  
+                "title": title,
                 "link": url,
-                "img_url": img_url if img_url else default_img_url,  
+                "img_url": img_url if img_url else default_img_url,
             } for url, img_url, title in paginated_urls],
             query=query,
             corrected_query=corrected_query_str,
@@ -117,14 +121,14 @@ def results():
             pagination_range=pagination_range,
         )
 
-    # Case 4: URLs and no typo suggestions
+    # Case 4: Articles and no typo suggestions
     if articles and not show_suggestion:
         return render_template(
             'results.html',
             results=[{
-                "title": title,  
+                "title": title,
                 "link": url,
-                "img_url": img_url if img_url else default_img_url,  
+                "img_url": img_url if img_url else default_img_url,
             } for url, img_url, title in paginated_urls],
             query=query,
             corrected_query=None,
@@ -133,8 +137,6 @@ def results():
             total_pages=total_pages,
             pagination_range=pagination_range,
         )
-
-
 
 
 @app.route('/no_result')
@@ -156,4 +158,4 @@ def home():
 
 
 if __name__ == "__main__": 
- app.run(port=5000, debug=True)
+    app.run(port=5000, debug=True)

@@ -77,7 +77,7 @@
         const tabs = document.querySelectorAll('.tab_btn');  
         const all_content = document.querySelectorAll('.content');
         const line = document.querySelector('.line');  
-
+    
         document.addEventListener("DOMContentLoaded", () => {
             const activeTab = document.querySelector('.tab_btn.active');
             if (activeTab) {
@@ -85,12 +85,12 @@
                 line.style.left = activeTab.offsetLeft + "px";
             }
         });
-
+    
         tabs.forEach((tab, index) => {
             tab.addEventListener('click', (e) => {
                 tabs.forEach(tab => tab.classList.remove('active'));
                 tab.classList.add('active');
-
+    
                 line.style.width = e.target.offsetWidth + "px";
                 line.style.left = e.target.offsetLeft + "px";
                 
@@ -98,17 +98,17 @@
                 all_content[index].classList.add('active');
             });
         });
-
+    
         const handleSubmitAsync = (btn, btnText, checkBox, formElement, endpoint) => {
             btn.addEventListener('click', function (event) {
                 event.preventDefault();
-
+    
                 btnText.innerText = "Adding...";
                 btn.classList.add("active", "loading");
                 checkBox.classList.remove("active");
-
+    
                 const formData = new FormData(formElement);
-
+    
                 fetch(endpoint, {
                     method: 'POST',
                     body: formData,
@@ -120,6 +120,7 @@
                         btn.classList.remove("loading");
                         btn.classList.add("success");
                         checkBox.classList.add("active");
+                        formElement.reset(); // Resettig the form whn success
                     } else {
                         btnText.innerText = "Error!";
                         btn.classList.remove("loading");
@@ -142,23 +143,24 @@
                 });
             });
         };
-
-        // handling submit to both buttons
+    
+        // Handling submit for both buttons
         handleSubmitAsync(
             document.getElementById('btn'),
             document.getElementById('btnText'),
-            document.querySelector('.check-box'),
+            document.querySelector('form[name="addContentForm"] .check-box'),
             document.querySelector('form[name="addContentForm"]'),
             '/'
         );
-
+    
         handleSubmitAsync(
             document.getElementById('btnLink'),
             document.getElementById('btnLinkText'),
-            document.querySelector('.check-box'),
+            document.querySelector('form[name="addLinkForm"] .check-box'),
             document.querySelector('form[name="addLinkForm"]'),
             '/'
         );
     </script>
+    
 </body>
 </html>

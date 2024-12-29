@@ -54,31 +54,28 @@
             </a>
             {% endfor %}
         </div>
-      
+        {% endif %}
+
     
-      
         <div class="pagination">
             {% if current_page > 1 %}
-            <a href="{{ url_for('results', query=corrected_query) }}" class="button">Previous</a>
+                <a href="{{ url_for('results', query=corrected_query if show_suggestion else query, page=current_page-1) }}" class="button">Previous</a>
             {% endif %}
-    
+        
             {% for page_num in pagination_range %}
-            {% if page_num == current_page %}
-            <span class="button current-page">{{ page_num }}</span>
-            {% else %}
-            <a href="{{ url_for('results', query=query, page=page_num) }}" class="button">{{ page_num }}</a>
-            {% endif %}
+                {% if page_num == current_page %}
+                    <span class="button current-page">{{ page_num }}</span>
+                {% else %}
+                    <a href="{{ url_for('results', query=corrected_query if show_suggestion else query, page=page_num) }}" class="button">{{ page_num }}</a>
+                {% endif %}
             {% endfor %}
-    
+        
             {% if current_page < total_pages %}
-            <a href="{{ url_for('results', query=query, page=current_page+1) }}" class="button">Next</a>
+                <a href="{{ url_for('results', query=corrected_query if show_suggestion else query, page=current_page+1) }}" class="button">Next</a>
             {% endif %}
         </div>
-        {% endif %}
-    </div>
-    
-    
-
+        
+        
 
     <script src="../static/js/script.js"></script>
     <script >
