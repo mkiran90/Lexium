@@ -1,3 +1,4 @@
+import threading
 import time
 from itertools import combinations
 
@@ -28,10 +29,23 @@ class ResultGeneration:
     def _generate_presence_map(self):
 
         presence_map = {}
-        for wordID in self.query_word_ids:
+
+        lock = threading.Lock()
+
+        def get_presence(wordID):
             presence = self.inverted_index.get(wordID)
-            assert presence is not None
-            presence_map[wordID] = presence
+            with lock:
+                presence_map[wordID] = presence
+
+        threads = []
+
+        for wordID in self.query_word_ids:
+            thread = threading.Thread(target=get_presence, args=(wordID,))
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+
         return presence_map
 
     def _generate_idf_map(self):
