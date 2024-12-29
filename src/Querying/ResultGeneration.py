@@ -27,10 +27,6 @@ class ResultGeneration:
 
     def _generate_presence_map(self):
 
-
-
-        # TODO: make sure each wordID is indexed first so assertion never fails
-
         presence_map = {}
         for wordID in self.query_word_ids:
             presence = self.inverted_index.get(wordID)
