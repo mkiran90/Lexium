@@ -179,6 +179,19 @@ class InvertedIndex:
                     index_update.new.append(presence)
 
 
+    def _latch_on(self, j,  presences, barrel_updates, popped_presences):
+
+        for presence in presences:
+            wordID = struct.unpack("I", presence[0:4])[0]
+
+            try:
+                popped_presences.append(presence + barrel_updates[wordID])
+                j -= 1
+            except KeyError:
+                popped_presences.append(presence)
+
+            return j
+
     def _barrelwise_accomodation(self, barrel_num, barrel_updates):
 
         barrel = Barrel(barrel_num)
@@ -202,18 +215,8 @@ class InvertedIndex:
             req_space += len(embedded_bytes)
             presences = barrel.truncate(req_space)
 
-            # presences are in descending order of in_barrel_pos
-            # barrel updates are in ascending order of in_barrel_pos
-            # so if a presence's wordID matches a barrel update, it has to be the last barrel update (at j-1)
 
-            for presence in presences:
-                wordID = struct.unpack("I", presence[0:4])[0]
-
-                try:
-                    popped_presences.append(presence + barrel_updates[wordID])
-                    j -= 1
-                except KeyError:
-                    popped_presences.append(presence)
+            j = self._latch_on(j, presences, barrel_updates, popped_presences)
 
             i += 1
 
