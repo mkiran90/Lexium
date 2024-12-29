@@ -176,6 +176,18 @@ class ArticleAddition:
 
         self._add(title, tags, body, img_url, url)
 
+    def placeholder_add(self, url):
+        if url:
+            return True
+        else:
+            return False    
+        
+    def placeholder_add_with_content(self, title, body,  url):
+        if url:
+            return True
+        else:
+            return False    
+
 
 if __name__ == "__main__":
     from src.meta.ResultMetaIndex import ResultMetaIndex
