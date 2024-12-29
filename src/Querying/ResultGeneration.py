@@ -1,6 +1,6 @@
 import threading
 import time
-from itertools import combinations
+from collections import Counter
 
 import numpy as np
 import Levenshtein
@@ -62,36 +62,25 @@ class ResultGeneration:
 
     def _relevant_docs(self):
 
-        query_combinations = [self.query_word_ids]
+        doc_occurrence = Counter()
 
-        if len(self.query_word_ids) > 1:
-            for comb in combinations(self.query_word_ids, len(self.query_word_ids) - 1):
-                query_combinations.append(set(comb))
+        reverse_index = {i : [] for i in range(1, len(self.query_word_ids) + 1)}
 
-        if len(self.query_word_ids) > 2:
-            for comb in combinations(self.query_word_ids, len(self.query_word_ids) - 2):
-                query_combinations.append(set(comb))
+        for wordID in self.query_word_ids:
+            doc_occurrence.update(self.presence_map[wordID].docSet)
+        for docID, count in doc_occurrence.items():
+            reverse_index[count].append(docID)
 
-        result_set = set()
+        del doc_occurrence
 
-        for combination in query_combinations:
-            result_set.update(self._get_doc_intersection(combination))
+        relevant_docs = set()
 
-        return result_set
+        n = len(self.query_word_ids)
+        while len(relevant_docs) < 100 and n > 0:
+            relevant_docs.update(reverse_index[n])
+            n -= 1
 
-    def _get_doc_intersection(self, word_ids: set):
-        # it is an empirical fact that a greater wordID has a smaller doclist
-        # and intersection of sets is O(min(m,n)) where m and n is size of sets that are being intersected
-        # starting with the smallest is the fastest way to go about this
-
-        max_wordID = max(word_ids)
-        result_set = self.presence_map[max_wordID].docSet
-        for wordID in word_ids:
-            if wordID == max_wordID:
-                continue
-            result_set = result_set & self.presence_map[wordID].docSet
-
-        return result_set
+        return relevant_docs
 
     def _get_total_doc_score(self, doc_id, doc_meta):
 
