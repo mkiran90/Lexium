@@ -39,12 +39,12 @@ def handle_post():
     try:
         if title and body and url:
            
-            Adder.placeholder_add_with_content(title, body, url)
+            Adder.add_with_content(title, body, url)
             response["status"] = "success"
         elif urlonly:
             print(urlonly)
             print('adding')
-            Adder.placeholder_add(urlonly)
+            Adder.add_with_url(urlonly)
             time.sleep(5)  # remove this just for testing 
             response["status"] = "success"
             print('added')
