@@ -35,7 +35,6 @@ def store_presence(i,startWordID, endWordID):
             if startWordID <= wordID <= endWordID:
                 presenceMap[wordID].add_doc(docID, wordInDoc)
         del wordInDoc_map
-        print(docID)
     path = f"../../res/WordPresenceMaps/presenceMap{i}.pkl"
     with open(path, "wb") as f:
         pickle.dump(presenceMap, f)
@@ -59,7 +58,6 @@ def index_word_presences():
         for presence in presence_map.values():
             inv_index.index_new_word(presence, test_novelty=True)
         del presence_map
-        print(i)
 
 
 

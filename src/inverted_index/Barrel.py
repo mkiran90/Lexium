@@ -2,7 +2,6 @@ import io
 import os
 import struct
 import tempfile
-import time
 
 from src.inverted_index.WordPresence import WordPresence
 
@@ -12,7 +11,6 @@ class BarrelFullException(Exception):
 class Barrel:
     _BARREL_CAPACITY = 1024 * 1024 * 1024  # 1GB
     _PARENT_PATH = os.path.dirname(os.path.abspath(__file__)) +"/../../res/inverted_index/barrels/"
-
     def __init__(self, barrel_num):
 
         self.BARREL_PATH = f"{self._PARENT_PATH}{barrel_num}/"
@@ -25,6 +23,7 @@ class Barrel:
             open(self.DATA_FILE_PATH, "wb")
         if not os.path.isfile(self.OFFSET_FILE_PATH):
             open(self.OFFSET_FILE_PATH, "wb")
+
 
     def has_space(self, num_bytes):
         with open(self.DATA_FILE_PATH, "ab") as f:
@@ -56,7 +55,6 @@ class Barrel:
             num_bytes = struct.unpack('I', f.read(4))[0]
             encoded_bytes = f.read(num_bytes)
             return WordPresence.decode(wordID, encoded_bytes)
-
 
     # 256 kB chunk size
     def _insert(self,f, position, new_bytes, chunk_size=256 * 1024):
@@ -91,49 +89,6 @@ class Barrel:
         # Clean up the temporary file
         os.remove(temp_file_path)
 
-    # increment all offsets that come after in_barrel_pos in offset file by num_bytes
-    def _increment_offsets(self, in_barrel_pos, num_bytes):
-        with open(self.OFFSET_FILE_PATH, "r+b") as f:
-             offset = 4*(in_barrel_pos + 1) # start from position AFTER in_barrel_pos
-             f.seek(offset)
-             offset_bytes = f.read()
-             num_offsets = len(offset_bytes)//4
-             offsets = struct.unpack(f"{num_offsets}I", offset_bytes)
-             updated_offsets = [x + num_bytes for x in offsets]
-             del offsets
-             del offset_bytes
-             f.seek(offset)
-             f.write(struct.pack(f"{num_offsets}I", *updated_offsets))
-
-    # from_bytes should only be TRUE if word_presence represents ALL BYTES of the entry i.e |docID|wordInDoc|
-    def update_word_presence(self, in_barrel_pos, docID, wordInDoc, from_bytes = False):
-        if from_bytes:
-            encoded_bytes = wordInDoc
-        else:
-            encoded_bytes = struct.pack("I", docID) + wordInDoc.encode()
-
-        if not self.has_space(len(encoded_bytes)):
-            raise BarrelFullException
-
-        offset = self._get_offset(in_barrel_pos)
-
-        with open(self.DATA_FILE_PATH, "r+b") as f:
-            f.seek(offset+4) # first 4 bytes are wordID, so skip
-            num_bytes = struct.unpack("I", f.read(4))[0]
-            num_docInWords = struct.unpack("I", f.read(4))[0]
-            A = time.time()
-            self._insert(f, offset + 8 + num_bytes, encoded_bytes)
-            print("Insertion: ", time.time() - A)
-            # update byte size of wordPresence
-            f.seek(offset+4)
-            f.write(struct.pack("I", num_bytes + len(encoded_bytes)))
-
-            # update num_docInWords
-            f.seek(offset + 8)
-            f.write(struct.pack("I", num_docInWords + 1))
-
-            self._increment_offsets(in_barrel_pos, len(encoded_bytes))
-
     # is is guaranteed by caller that the wordID is not indexed i.e in barrel index get_position(wordID) should return 0,0 / -1,-1
     # from_bytes should only be TRUE if word_presence represents ALL BYTES of the entry i.e |wordID|num_bytes|presence|
     def index_new_word(self, word_presence, from_bytes = False):
@@ -144,7 +99,8 @@ class Barrel:
         else:
             encoded_bytes = word_presence
 
-        if not self.has_space(len(encoded_bytes)):
+        # if it doesn't have space but it has no word presences stored inside, then bypass capacity
+        if not self.has_space(len(encoded_bytes)) and not (self.size()==0):
             raise BarrelFullException()
 
         # update data file
@@ -222,16 +178,15 @@ class Barrel:
                  new_offsets = [(x + num_bytes) for x in struct.unpack(f"{n}I", offset_bytes)]
                  f.write(struct.pack(f"{n}I", *new_offsets))
 
-
-
     def batch_update(self, barrel_pos_map, barrel_updates):
 
         chunk_size = 256*1024 # 256 KBs
 
         space_required = sum(len(x) for x in barrel_updates.values())
 
-        # technically should never have to raise
-        if not self.has_space(space_required):
+        # technically should never have to raise because externally guaranteed that barrel has space
+        # if it doesn't technically have space, but theres only one word in it, we ignore the concept of capacity and let it run
+        if not self.has_space(space_required) and not (self.size()==1 and len(barrel_updates)==1):
             raise BarrelFullException
 
         with open(self.OFFSET_FILE_PATH, "rb") as offset_file:

@@ -1,6 +1,5 @@
 import os
 import struct
-import time
 
 import numpy as np
 from src.util.singleton import singleton
@@ -16,7 +15,6 @@ body_len -> uint16
 word_embedding -> 1200 bytes
 """
 
-print("cwd in meta: ", os.getcwd())
 
 class DocumentRankingMeta:
     def __init__(self, title_length, body_length, meaning):
@@ -117,14 +115,4 @@ class RankingMetaIndex:
                 doc_map[docID] = DocumentRankingMeta(title_length=struct.unpack("B", doc_bytes[0:1])[0], body_length=struct.unpack("H", doc_bytes[1:3])[0], meaning=np.frombuffer(doc_bytes[3:], dtype=np.float32))
 
         return doc_map
-
-
-if __name__ == "__main__":
-
-    meta = RankingMetaIndex()
-    doc_list = list(range(100000))
-    A = time.time()
-    meta.batch_load(doc_list)
-    print(time.time() - A)
-
 

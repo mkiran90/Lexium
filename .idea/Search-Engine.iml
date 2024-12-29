@@ -15,7 +15,7 @@
         <option value="$MODULE_DIR$/src/lexicon_gen" />
         <option value="$MODULE_DIR$/src/util" />
         <option value="$MODULE_DIR$/src" />
-        <option value="$MODULE_DIR$/app" />
+        <option value="$MODULE_DIR$/src/app" />
       </list>
     </option>
   </component>

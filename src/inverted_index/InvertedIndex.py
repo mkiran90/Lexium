@@ -1,6 +1,7 @@
 import io
 import os
 import struct
+import threading
 
 from src.util.singleton import singleton
 from src.inverted_index.Barrel import Barrel, BarrelFullException
@@ -18,8 +19,6 @@ class InvertedIndexUpdate:
 
     # sort the old word updates first by barrel_num, then by in_barrel_pos
     def sort(self, inv_index):
-
-
         self.old = dict(sorted(self.old.items()))
 
         for (barrel_num, barrel_updates) in self.old.items():
@@ -120,41 +119,7 @@ class InvertedIndex:
         barrel = Barrel(barrel_num)
         return barrel.get(in_barrel_pos)
 
-    def _accomodate(self, barrel, num_bytes):
-        popped_words = barrel.truncate(num_bytes)
-        for word_bytes in popped_words:
-            self.index_new_word(word_presence=word_bytes, test_novelty=False, from_bytes=True)
-
-    # this is the more general operation and will be used when a new document has to be stored in inverted index
-    # document will be split into a set of (wordID,wordInDoc) pairs, each being added.
-    # from_bytes should only be true if wordInDoc represents the COMPLETE bytes |docID|wordInDoc|
-    def add(self, wordID, docID, wordInDoc, from_bytes=False):
-
-        barrel_num, in_barrel_pos = self._get_position(wordID)
-        if not from_bytes:
-            encoded_bytes = struct.pack("I", docID) + wordInDoc.encode()
-        else:
-            encoded_bytes = wordInDoc
-
-        # updating the word, it is already indexed
-        if barrel_num >= 1:
-            barrel = Barrel(barrel_num)
-            try:
-                barrel.update_word_presence(in_barrel_pos, docID, encoded_bytes, from_bytes=True)
-            except BarrelFullException:
-                self._accomodate(barrel, len(encoded_bytes))
-                self.add(wordID, docID, encoded_bytes, from_bytes=True)
-
-
-        # barrel_num = 0 or -1
-        else:
-            presence = WordPresence(wordID)
-            presence.add_doc(docID, wordInDoc)
-
-            # this registers as well
-            self.index_new_word(presence, test_novelty=False)
-
-    # novely checks if word hasnt already been indexed, won't need to do this if check is done externally.
+    # novelty checks if word hasnt already been indexed, won't need to do this if check is done externally.
     def index_new_word(self, word_presence, test_novelty, from_bytes=False):
 
         if test_novelty:
@@ -179,11 +144,9 @@ class InvertedIndex:
         else:
             self._register_word(struct.unpack("I", word_presence[0:4])[0], barrel_num, in_barrel_pos)
 
-
     def _get_position_from_file(self, f,wordID):
 
         offset = 4 + wordID * 5
-
 
         f.seek(0, 2) # seek end
 
@@ -197,10 +160,7 @@ class InvertedIndex:
         return barrel_num, in_barrel_pos
 
 
-
-
-    # INITIAL POPULATE INVERTED INDEX UPDATE
-    def populate_index_update(self, index_update, doc_wordInDocs):
+    def _distribution(self, index_update, doc_wordInDocs):
 
         with open(self._BARREL_INDEX_FILE_PATH, "rb") as f:
             for (wordID, wordInDoc) in doc_wordInDocs.items():
@@ -219,7 +179,7 @@ class InvertedIndex:
                     index_update.new.append(presence)
 
 
-    def accomodate_barrel_for_update(self, barrel_num, barrel_updates):
+    def _barrelwise_accomodation(self, barrel_num, barrel_updates):
 
         barrel = Barrel(barrel_num)
 
@@ -229,6 +189,10 @@ class InvertedIndex:
 
         i = 0
         j = len(barrel_updates)
+
+        # capacity doesn't matter in this case, we must insert anyway
+        if barrel.size()==1 and len(barrel_updates) == 1:
+            return
 
         for embedded_bytes in barrel_updates.values():
 
@@ -243,7 +207,6 @@ class InvertedIndex:
             # so if a presence's wordID matches a barrel update, it has to be the last barrel update (at j-1)
 
             for presence in presences:
-
                 wordID = struct.unpack("I", presence[0:4])[0]
 
                 try:
@@ -256,38 +219,50 @@ class InvertedIndex:
 
         return popped_presences, j
 
-    def accomodate_for_update(self, index_update:InvertedIndexUpdate):
+    def _accommodation(self, index_update:InvertedIndexUpdate):
 
         popped_presences = []
 
         for (barrel_num, barrel_updates) in index_update.old.items():
-            presences, valid_update_boundary = self.accomodate_barrel_for_update(barrel_num, barrel_updates)
+            presences, valid_update_boundary = self._barrelwise_accomodation(barrel_num, barrel_updates)
             index_update.old[barrel_num] = dict(list(barrel_updates.items())[:valid_update_boundary])
             popped_presences.extend(presences)
 
         return popped_presences
 
-    def index_document(self, docID, doc_wordInDocs: dict[int, WordInDoc]):
+    def _barrelwise_insertion(self, barrel_num, barrel_updates):
 
+        barrel = Barrel(barrel_num)
+
+        barrel_pos_map = {wordID: self._get_position(wordID)[1] for wordID in barrel_updates}
+
+        # should be guaranteed that the barrel has space for all barrel_updates
+        barrel.batch_update(barrel_pos_map, barrel_updates)
+
+    def _insertion(self, index_update):
+        threads = []
+        for (barrel_num, barrel_updates) in index_update.old.items():
+            thread = threading.Thread(target=self._barrelwise_insertion, args=(barrel_num, barrel_updates))
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+
+    def index_document(self, docID, doc_wordInDocs: dict[int, WordInDoc]):
+        '''
+        THE FLOW IS:
+        DISTRIBUTION -> SORTING -> BYTE CONVERSION -> ACCOMMODATION -> UPDATE_INSERTION -> NEW_INSERTION
+        These are high level subjective operations that must be understood from external documentation.
+        '''
         index_update = InvertedIndexUpdate()
         index_update.docID = docID
-        self.populate_index_update(index_update, doc_wordInDocs)
+        self._distribution(index_update, doc_wordInDocs)
         index_update.sort(inv_index=self)
         index_update.to_bytes()
-        index_update.new.extend(self.accomodate_for_update(index_update))
+        index_update.new.extend(self._accommodation(index_update))
+        self._insertion(index_update)
 
-        # now, all new presences have been accumulated
-        # and, in old updates, the updates are categorized by barrels and each barrel has space to acccomodate
-        # all the respective updates, otherwise they have been
-
-        for (barrel_num, barrel_updates) in index_update.old.items():
-
-            barrel = Barrel(barrel_num)
-
-            barrel_pos_map = {wordID: self._get_position(wordID)[1] for wordID in barrel_updates}
-
-            # should be guaranteed that the barrel has space for all barrel_updates
-            barrel.batch_update(barrel_pos_map, barrel_updates)
-
+        # NEW INSERTION, must be sequential
         for presence in index_update.new:
             self.index_new_word(presence, test_novelty=False, from_bytes=True)

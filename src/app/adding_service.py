@@ -33,7 +33,6 @@ def handle_post():
     urlonly = request.form.get('urlonly')
     title = request.form.get('title')
     body = request.form.get('body')
-    print('doo')
 
     try:
         if title and body and url:
@@ -41,11 +40,8 @@ def handle_post():
             Adder.add_with_content(title, body, url)
             response["status"] = "success"
         elif urlonly:
-            print(urlonly)
-            print('adding')
             Adder.add_with_url(urlonly)
             response["status"] = "success"
-            print('added')
     except Exception as e:
         print(f"Error: {e}")
         response["status"] = "error"
