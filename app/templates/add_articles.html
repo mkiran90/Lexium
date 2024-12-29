@@ -9,7 +9,7 @@
 </head>
 <body>
     <nav class="NavBar">
-        <div class="logo-search">Lexium</div>
+        <div class="logo-search"><img src="../static/img/log.png" alt="Logo"></div>
         <div class="links">
             <a href="/" id="addArticle" class="icon">
                 <i class="fas fa-plus"></i>
@@ -22,11 +22,12 @@
    
     <div class="container">
         <div class="tab_box">
-            <button class="tab_btn active">Add Content</button>
-            <button class="tab_btn">Add Link</button>
+            <button class="tab_btn active"><i class="fa fa-pen-nib" aria-hidden="true"></i> Add Content</button>
+            <button class="tab_btn"><i class="fa fa-link" aria-hidden="true"></i> Add Link</button>
             <div class="line"></div>
         </div>
         <div class="content_box">
+            <!-- Add Content Form -->
             <form method="POST" action="/" class="content active" name="addContentForm">
                 <div class="input-container">
                     <label class="textAdd" for="input1">Title</label>
@@ -41,91 +42,123 @@
                     <textarea id="inputLink" name="url" placeholder="Enter URL..." rows="4" cols="50"></textarea>
                 </div>
                 <div class="btncontainer">
-                    <button type="submit" name="addContent" value="Submit" class="btn" id="btn">
+                    <button type="button" name="addContent" class="btn" id="btn">
                         <p id="btnText">Submit</p>
                         <div class="check-box">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
-                                <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8"></path>
                             </svg>
                         </div>
                     </button>
                 </div>
             </form>
             
+            <!-- Add Link Form -->
             <form method="POST" action="/" class="content" name="addLinkForm">
                 <div class="input-container">
                     <label class="textAdd" for="inputLink">URL</label>
                     <textarea id="inputLink" name="urlonly" placeholder="Enter URL..." rows="4" cols="50"></textarea>
                 </div>
                 <div class="btncontainer">
-                    <button type="submit" name="addLink" value="Submit Link" class="btn" id="btnLink">
+                    <button type="button" name="addLink" class="btn" id="btnLink">
                         <p id="btnLinkText">Submit Link</p>
                         <div class="check-box">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
-                                <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                                <path fill="transparent" d="M14.1 27.2l7.1 7.2 16.7-16.8"></path>
                             </svg>
                         </div>
                     </button>
                 </div>
             </form>
-            
         </div>
     </div>
     
-
     <script>
-    const tabs = document.querySelectorAll('.tab_btn');  
-    const all_content = document.querySelectorAll('.content');
-    const line = document.querySelector('.line');  
+        const tabs = document.querySelectorAll('.tab_btn');  
+        const all_content = document.querySelectorAll('.content');
+        const line = document.querySelector('.line');  
 
-    document.addEventListener("DOMContentLoaded", () => {
-    const activeTab = document.querySelector('.tab_btn.active');
-    if (activeTab) {
-        line.style.width = activeTab.offsetWidth + "px";
-        line.style.left = activeTab.offsetLeft + "px";
-    }
-    });
+        document.addEventListener("DOMContentLoaded", () => {
+            const activeTab = document.querySelector('.tab_btn.active');
+            if (activeTab) {
+                line.style.width = activeTab.offsetWidth + "px";
+                line.style.left = activeTab.offsetLeft + "px";
+            }
+        });
 
-tabs.forEach((tab, index) => {
-    tab.addEventListener('click', (e) => {
-        tabs.forEach(tab => tab.classList.remove('active'));
-        tab.classList.add('active');
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', (e) => {
+                tabs.forEach(tab => tab.classList.remove('active'));
+                tab.classList.add('active');
 
-        line.style.width = e.target.offsetWidth + "px";
-        line.style.left = e.target.offsetLeft + "px";
-        
-        all_content.forEach(content => content.classList.remove('active'));
-        all_content[index].classList.add('active');
-    });
-});
+                line.style.width = e.target.offsetWidth + "px";
+                line.style.left = e.target.offsetLeft + "px";
+                
+                all_content.forEach(content => content.classList.remove('active'));
+                all_content[index].classList.add('active');
+            });
+        });
 
-const handleSubmit = (btn, btnText, checkBox, text, form) => {
-    btn.addEventListener('click', function (event) {
-        event.preventDefault(); // Prevent the form from submitting immediately
-        btnText.innerText = "Done"; // Change text to "Done"
-        btn.classList.add("active");
-        checkBox.classList.add("active");
+        const handleSubmitAsync = (btn, btnText, checkBox, formElement, endpoint) => {
+            btn.addEventListener('click', function (event) {
+                event.preventDefault();
 
-        // Timeout to wait for animation before submitting
-        setTimeout(() => {
-            btnText.innerText = text; // Restore the original text
-            btn.classList.remove("active");
-            checkBox.classList.remove("active");
+                btnText.innerText = "Adding...";
+                btn.classList.add("active", "loading");
+                checkBox.classList.remove("active");
 
-            form.submit();
-        }, 3000); 
-    });
-};
+                const formData = new FormData(formElement);
 
-// Get references to the buttons and forms
-const addContentForm = document.querySelector('form[name="addContentForm"]');
-const addLinkForm = document.querySelector('form[name="addLinkForm"]');
+                fetch(endpoint, {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        btnText.innerText = "Done!";
+                        btn.classList.remove("loading");
+                        btn.classList.add("success");
+                        checkBox.classList.add("active");
+                    } else {
+                        btnText.innerText = "Error!";
+                        btn.classList.remove("loading");
+                        btn.classList.add("error");
+                    }
+                })
+                .catch(error => {
+                    btnText.innerText = "Error!";
+                    btn.classList.remove("loading");
+                    btn.classList.add("error");
+                    console.error("Request failed:", error);
+                })
+                .finally(() => {
+                    // Resetting
+                    setTimeout(() => {
+                        btnText.innerText = "Submit";
+                        btn.classList.remove("active", "success", "error");
+                        checkBox.classList.remove("active");
+                    }, 3000);
+                });
+            });
+        };
 
-// Apply the handleSubmit function for both buttons
-handleSubmit(document.getElementById('btn'), document.getElementById('btnText'), document.querySelector('.check-box'), "Submit", addContentForm);
-handleSubmit(document.getElementById('btnLink'), document.getElementById('btnLinkText'), document.querySelector('.check-box'), "Submit Link", addLinkForm);
+        // handling submit to both buttons
+        handleSubmitAsync(
+            document.getElementById('btn'),
+            document.getElementById('btnText'),
+            document.querySelector('.check-box'),
+            document.querySelector('form[name="addContentForm"]'),
+            '/'
+        );
 
-
+        handleSubmitAsync(
+            document.getElementById('btnLink'),
+            document.getElementById('btnLinkText'),
+            document.querySelector('.check-box'),
+            document.querySelector('form[name="addLinkForm"]'),
+            '/'
+        );
     </script>
 </body>
 </html>

@@ -42,47 +42,13 @@ def extract_title_from_link(link):
 
 @app.route('/results')
 def results():
-
-    images = [
-        {
-            "src": "https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDU4OXwwfDF8cmFuZG9tfHx8fHx8fHx8MTYzNDA0OTI3Nw&ixlib=rb-1.2.1&q=80&w=400",
-            "alt": "Volcano and lava field against a stormy sky",
-            "title": "Mountains and volcanos"
-        },
-        {
-            "src": "https://images.unsplash.com/photo-1633621533308-8760aefb5521?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDU4OXwwfDF8cmFuZG9tfHx8fHx8fHx8MTYzNDA1MjAyMQ&ixlib=rb-1.2.1&q=80&w=400",
-            "alt": "Guy on a bike ok a wooden bridge with a forest backdrop",
-            "title": "Adventure getaways"
-        },
-        {
-            "src": "https://images.unsplash.com/photo-1633635146842-12d386e64058?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDU4OXwwfDF8cmFuZG9tfHx8fHx8fHx8MTYzNDA1MjA5OA&ixlib=rb-1.2.1&q=80&w=400",
-            "alt": "Person standing alone in a misty forest",
-            "title": "Forest escapes"
-        },
-        {
-            "src": "https://images.unsplash.com/photo-1568444438385-ece31a33ce78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDU4OXwwfDF8cmFuZG9tfHx8fHx8fHx8MTYzNDA1MjA5OA&ixlib=rb-1.2.1&q=80&w=400",
-            "alt": "Person hiking on a trail through mountains while taking a photo with phone",
-            "title": "Hiking trails"
-        },
-        {
-            "src": "https://images.unsplash.com/photo-1633515257379-5fda985bd57a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDU4OXwwfDF8cmFuZG9tfHx8fHx8fHx8MTYzNDA1MjA5OA&ixlib=rb-1.2.1&q=80&w=400",
-            "alt": "Street scene with person walking and others on motorbikes, all wearing masks",
-            "title": "Street scenes"
-        },
-        {
-            "src": "https://images.unsplash.com/photo-1633209931146-260ce0d16e22?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxNDU4OXwwfDF8cmFuZG9tfHx8fHx8fHx8MTYzNDA1MjA5OA&ixlib=rb-1.2.1&q=80&w=400",
-            "alt": "Fashionable-looking girl with blond hair and pink sunglasses",
-            "title": "Trending"
-        },
-    ]
-      
+   
     query = request.args.get('query', '').strip()
     print(f"User query: {query}")
 
     if not query:
         return redirect(url_for('no_result'))
 
-    
     spell = SpellChecker()
 
     try:
@@ -91,24 +57,22 @@ def results():
         print(f"Error initializing ResultGeneration: {e}")
         return redirect(url_for('no_result'))
 
-    
     words = query.split()
     corrected_words = [spell.correction(word) for word in words]
-
     corrected_words = [word for word in corrected_words if word is not None]
-
     corrected_query_str = " ".join(corrected_words) if corrected_words else query
 
     show_suggestion = bool(corrected_query_str) and corrected_query_str != query
- 
-   
+
+    
+    
     articles = result_gen.get_search_results()
 
     # Case 1: No URLs and no typo suggestions
     if not articles and not show_suggestion:
         return redirect(url_for('no_result'))
 
-    # Case 2: No URLs but there is a typo so give suggestions
+    # Case 2: No URLs but there is a typo, so give suggestions
     if not articles and show_suggestion:
         return render_template(
             'no_result.html',
@@ -117,8 +81,8 @@ def results():
             show_suggestion=True,
         )
 
-    # Pagination thingy
-    docs_per_page = 10
+    # Pagination thing
+    docs_per_page = 9
     total_docs = len(articles)
     total_pages = max((total_docs + docs_per_page - 1) // docs_per_page, 1)
 
@@ -134,22 +98,23 @@ def results():
     end_index = start_index + docs_per_page
     paginated_urls = articles[start_index:end_index]
 
+    default_img_url = url_for('static', filename='img/default.png')
+
     # Case 3: URLs and typo suggestions
     if articles and show_suggestion:
         return render_template(
             'results.html',
             results=[{
-                "title": extract_title_from_link(url),
+                "title": title,  
                 "link": url,
-             
-            } for url in paginated_urls],
+                "img_url": img_url if img_url else default_img_url,  
+            } for url, img_url, title in paginated_urls],
             query=query,
-            corrected_query=corrected_query_str, 
+            corrected_query=corrected_query_str,
             show_suggestion=True,
-            current_page=page,  
-            total_pages=total_pages,  
-            pagination_range=pagination_range,  
-            images=images
+            current_page=page,
+            total_pages=total_pages,
+            pagination_range=pagination_range,
         )
 
     # Case 4: URLs and no typo suggestions
@@ -157,17 +122,16 @@ def results():
         return render_template(
             'results.html',
             results=[{
-                "title": extract_title_from_link(url),
+                "title": title,  
                 "link": url,
-                
-            } for url in paginated_urls],
+                "img_url": img_url if img_url else default_img_url,  
+            } for url, img_url, title in paginated_urls],
             query=query,
-            corrected_query=None,  
+            corrected_query=None,
             show_suggestion=False,
-            current_page=page, 
-            total_pages=total_pages,  
-            pagination_range=pagination_range, 
-            images = images 
+            current_page=page,
+            total_pages=total_pages,
+            pagination_range=pagination_range,
         )
 
 
