@@ -68,14 +68,19 @@ def paginate_results(articles, page, docs_per_page):
 def results():
     query = request.args.get('query', '').strip()
     page = int(request.args.get('page', search_state['current_page']))
+
     if not query:
         return redirect(url_for('no_result'))
 
-    if page == 1:
-        corrected_query, show_suggestion = fetch_and_correct_query(query)
-    else:
-        corrected_query, show_suggestion = query, False
+    # Check if the query has changed
+    if query != search_state['query']:
+        search_state['current_page'] = 1  # Reset to the first page
+        page = 1
 
+    # Fetch the corrected query but do not use it for results
+    corrected_query, show_suggestion = fetch_and_correct_query(query)
+
+    # Always fetch results using the original query
     articles = fetch_results(query)
     docs_per_page = 9
     search_state['current_page'] = page
@@ -83,15 +88,11 @@ def results():
     pagination_range = list(range(max(1, page - 2), min(total_pages + 1, page + 3)))
     default_img_url = url_for('static', filename='img/default.png')
 
-
-    print(query)
-    print(corrected_query)
-    
-    #if no result no suggestion
+    # If no results and no suggestion
     if not articles and not show_suggestion:
         return redirect(url_for('no_result'))
-    
-    #if no result but there is suggestion
+
+    # If no results but a suggestion exists
     if not articles and show_suggestion:
         return render_template(
             'no_result.html',
@@ -99,8 +100,8 @@ def results():
             corrected_query=corrected_query,
             show_suggestion=True,
         )
-    
-    #if artciles are present 
+
+    # If articles are present
     return render_template(
         'results.html',
         results=[{
@@ -115,6 +116,7 @@ def results():
         total_pages=total_pages,
         pagination_range=pagination_range,
     )
+
 
 
 @app.route('/no_result')
