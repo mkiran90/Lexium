@@ -158,6 +158,7 @@ class ArticleAddition:
         print("Article Indexed")
 
     def add_with_url(self,url: str):
+        url = url.strip()
 
         A = time.time()
         title, tags, body, img_url = self._parse_url(url)
@@ -167,7 +168,8 @@ class ArticleAddition:
 
 
     def add_with_content(self, title, body, url):
-
+        url = url.strip()
+        title = title.strip()
         tags = []
         img_url = ""
 

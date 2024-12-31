@@ -75,6 +75,7 @@ class ResultGeneration:
 
         relevant_docs = set()
 
+
         n = len(self.query_word_ids)
         while len(relevant_docs) < 100 and n > 0:
             relevant_docs.update(reverse_index[n])
@@ -93,7 +94,7 @@ class ResultGeneration:
         title = title_freq * title_prox
         semantic = get_semantic_score(self.query_meaning, doc_meta=doc_meta)
 
-        return 0.25*body + 0.65*title + 0.1*semantic
+        return 0.20*body + 0.75*title + 0.05*semantic
 
     def get_search_results(self):
 
@@ -110,6 +111,7 @@ class ResultGeneration:
         
         # ONLY TOP 100
         # here info is a [url, img_url, title]
+        print(sorted_doc_id_list)
         docId_info = [self.resultMeta.get(docID) for docID in sorted_doc_id_list[:100]]
         print("Time fetching URLs: ", time.time() - A)
         return docId_info
@@ -118,7 +120,6 @@ class ResultGeneration:
         docmeta_map = self._generate_docmeta_map(doc_id_list)
         scores = {doc_id : self._get_total_doc_score(doc_id, docmeta_map[doc_id]) for doc_id in doc_id_list}
         sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
-
         return [score[0] for score in sorted_scores]
 
     def get_query_meaning(self):
